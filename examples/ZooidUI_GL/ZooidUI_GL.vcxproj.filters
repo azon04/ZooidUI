@@ -1,0 +1,107 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="UI">
+      <UniqueIdentifier>{24176fc8-1698-4d50-92b8-53f7cad901a1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GL">
+      <UniqueIdentifier>{2acb4b13-3355-4c43-8ea6-937861d19a7f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GL\Shaders">
+      <UniqueIdentifier>{0661ce34-a1b9-4dcb-a492-a52a20fa9aa0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GL\External">
+      <UniqueIdentifier>{356e0d3f-5468-44c3-9fb9-685dad599948}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Common">
+      <UniqueIdentifier>{c5d5c4fd-cd21-4e9f-ac3b-62049f448fb0}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\UI\ZooidUI.h">
+      <Filter>UI</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\UI\UIRenderer.h">
+      <Filter>UI</Filter>
+    </ClInclude>
+    <ClInclude Include="GL_UIRenderer.h">
+      <Filter>GL</Filter>
+    </ClInclude>
+    <ClInclude Include="Shader.h">
+      <Filter>GL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\UI\External\stb_image.h">
+      <Filter>GL\External</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\Timer.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\UI\ZooidUI.cpp">
+      <Filter>UI</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\UI\UIRenderer.cpp">
+      <Filter>UI</Filter>
+    </ClCompile>
+    <ClCompile Include="Main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GL_UIRenderer.cpp">
+      <Filter>GL</Filter>
+    </ClCompile>
+    <ClCompile Include="Shader.cpp">
+      <Filter>GL</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\UI\External\stb_image.cpp">
+      <Filter>GL\External</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Shaders\BaseShapeShader.vs">
+      <Filter>GL\Shaders</Filter>
+    </None>
+    <None Include="Shaders\BaseShapeShader_Color.frag">
+      <Filter>GL\Shaders</Filter>
+    </None>
+    <None Include="Shaders\BaseShapeShader_Texture.frag">
+      <Filter>GL\Shaders</Filter>
+    </None>
+    <None Include="Shaders\BaseTextShader.frag">
+      <Filter>GL\Shaders</Filter>
+    </None>
+    <None Include="Shaders\BaseTextShader.vs">
+      <Filter>GL\Shaders</Filter>
+    </None>
+    <None Include="Shaders\BaseShapeShader_Instance.vs">
+      <Filter>GL\Shaders</Filter>
+    </None>
+    <None Include="Shaders\BaseShapeShader_Color_Instance.frag">
+      <Filter>GL\Shaders</Filter>
+    </None>
+    <None Include="Shaders\BaseTextShader_Instance.vs">
+      <Filter>GL\Shaders</Filter>
+    </None>
+    <None Include="Shaders\BaseTextShader_Instance.frag">
+      <Filter>GL\Shaders</Filter>
+    </None>
+    <None Include="Shaders\BaseShapeShader_Texture_Instance.frag">
+      <Filter>GL\Shaders</Filter>
+    </None>
+    <None Include="Shaders\BaseShapeShader_Texture_Instance.vs">
+      <Filter>GL\Shaders</Filter>
+    </None>
+  </ItemGroup>
+</Project>
