@@ -1005,7 +1005,7 @@ namespace ZE
 
 	ZE::UIDrawItem* UIDrawList::getTextureInstanceDrawItem(UInt32 _index)
 	{
-		bool bHas = m_textureToInstanceDrawItem.find(_index) != m_textureToInstanceDrawItem.end();
+		bool bHas = HashMapHas(m_textureToInstanceDrawItem, _index);
 		if (!bHas)
 		{
 			UIDrawItem* draw = getNextDrawItem();
@@ -1038,7 +1038,7 @@ namespace ZE
 
 	ZE::UIDrawItem* UIDrawList::getTextureDrawItem(UInt32 textureHandle)
 	{
-		bool bHas = m_textureToDrawItemMap.find(textureHandle) != m_textureToDrawItemMap.end();
+		bool bHas = HashMapHas(m_textureToDrawItemMap, textureHandle);
 		if (!bHas)
 		{
 			UIDrawItem* draw = getNextDrawItem();
@@ -1214,7 +1214,7 @@ namespace ZE
 		Float32 result = 0;
 		while (c != '\0')
 		{
-			int charIndex = m_charMap.find(c) == m_charMap.end() ? 0 : m_charMap[c];
+			int charIndex = HashMapHas(m_charMap,c) ? m_charMap[c] : 0;
 			result += scale * m_charDesc[charIndex].Advance;
 			c = text[index++];
 		}
@@ -1243,7 +1243,7 @@ namespace ZE
 				cX = 0;
 			}
 
-			int charIndex = m_charMap.find(c) == m_charMap.end() ? 0 : m_charMap[c];
+			int charIndex = HashMapHas(m_charMap,c) ? m_charMap[c] : 0;
 			UIFontCharDesc& charDesc = m_charDesc[charIndex];
 
 			cX += charDesc.Advance * scale;
@@ -1280,8 +1280,9 @@ namespace ZE
 				continue;
 			}
 
-			auto charIter = m_charMap.find(c);
-			int charIndex = charIter == m_charMap.end() ? 0 : charIter->second;
+			int charIndex;
+			HashMapHasAndAssign(m_charMap, c, 0, charIndex);
+			
 			UIFontCharDesc& charDesc = m_charDesc[charIndex];
 
 			Float32 xPos = x + charDesc.Bearing.x * scale;
@@ -1368,8 +1369,8 @@ namespace ZE
 				continue;
 			}
 
-			auto charIter = m_charMap.find(c);
-			int charIndex = charIter == m_charMap.end() ? 0 : charIter->second;
+			int charIndex;
+			HashMapHasAndAssign(m_charMap, c, 0, charIndex);
 			UIFontCharDesc& charDesc = m_charDesc[charIndex];
 
 			Float32 xPos = x + charDesc.Bearing.x * scale;
@@ -1443,8 +1444,8 @@ namespace ZE
 		width = 0;
 		while (c != '\0' && c!= '\n')
 		{
-			auto charIter = m_charMap.find(c);
-			int charIndex = charIter == m_charMap.end() ? 0 : charIter->second;
+			int charIndex;
+			HashMapHasAndAssign(m_charMap, c, 0, charIndex);
 			UIFontCharDesc& charDesc = m_charDesc[charIndex];
 
 			if (width + charDesc.Advance * scale >= maxWidth)
@@ -1473,8 +1474,8 @@ namespace ZE
 		Float32 cX = 0;
 		while (c != '\0' && c!= '\n')
 		{
-			auto charIter = m_charMap.find(c);
-			int charIndex = charIter == m_charMap.end() ? 0 : charIter->second;
+			int charIndex;
+			HashMapHasAndAssign(m_charMap, c, 0, charIndex);
 			UIFontCharDesc& charDesc = m_charDesc[charIndex];
 
 			if (cX + charDesc.Advance * scale >= maxWidth)

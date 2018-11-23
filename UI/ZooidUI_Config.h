@@ -3,12 +3,22 @@
 /************************************************************************/
 
 // Put Additional Includes here if Needed
+#include <cstdint>
+#include <vector>
+#include <map>
 
 // Array Type that use in this code. Change to other type if needed
 #define UIArray std::vector
 
 // HasMap type that use in this code. Change to other type if needed
 #define UIHashMap std::map
+
+// HashMap Find
+#define HashMapHas(hashmap, key) hashmap.find(key) != hashmap.end()
+
+// HashMap Find and assign
+#define HashMapHasAndAssign(hashmap, key, defaultValue, out) \
+	{ auto iter = hashmap.find(key); out = iter == hashmap.end() ? defaultValue : iter->second;  }
 
 // Allocation function. Change to other if needed
 #define UINEW(Class) new Class

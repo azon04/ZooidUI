@@ -1,10 +1,6 @@
 #ifndef __ZE_UI_H__
 #define __ZE_UI_H__
 
-#include <cstdint>
-#include <vector>
-#include <map>
-
 #include "ZooidUI_Config.h"
 
 namespace ZE
