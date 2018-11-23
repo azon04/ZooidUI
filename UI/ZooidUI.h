@@ -5,31 +5,13 @@
 #include <vector>
 #include <map>
 
-// Configs
-
-// Define
-#define UIArray std::vector
-#define UIHashMap std::map
-#define UINEW(Class) new Class
-#define UIFREE(object) delete object
-
-// Config
-#define ZUI_USE_FONT_INSTANCING
-#define ZUI_USE_RECT_INSTANCING
+#include "ZooidUI_Config.h"
 
 namespace ZE
 {
 	// Forward Declaration
 	class UIRenderer;
 	class UIDrawer;
-
-	// Setup Primitive types
-	typedef float Float32;
-	typedef std::int32_t Int32;
-	typedef std::uint32_t UInt32;
-	typedef char UIChar;
-	typedef UIChar* UIText;
-	typedef std::uint8_t UInt8;
 
 	struct UI_ID
 	{
@@ -369,7 +351,8 @@ namespace ZE
 	// Font Style
 	struct UIFontStyle
 	{
-
+		UIFont* font = nullptr;
+		Float32 fontScale = 1.0f;
 	};
 
 	// Button Style
@@ -388,6 +371,7 @@ namespace ZE
 		UIStyle hover;
 		UIStyle down;
 		UIStyle selected;
+		UIFontStyle fontStyle;
 	};
 
 	struct UISliderStyle
@@ -403,6 +387,7 @@ namespace ZE
 		Float32 headerHeight;
 		UIStyle panelClosed;
 		UIStyle panelOpened;
+		UIFontStyle headerFontStyle;
 	};
 
 	// Functions to use to draw everything
@@ -428,23 +413,23 @@ namespace ZE
 		bool DoButton(UIState& uiState, Int32 _id, UIRect& rect, const UIButtonStyle& buttonStyle = DefaultButtonStyle);
 		
 		// Return True if Checked
-		bool DoCheckBox(UIState& uiState, Int32 _id, const UIVector2& pos, const UIChar* text, UIFont* font, bool bChecked, const UIButtonStyle& checkBoxStyle = DefaultCheckBoxStyle);
+		bool DoCheckBox(UIState& uiState, Int32 _id, const UIVector2& pos, const UIChar* text, bool bChecked, const UIButtonStyle& checkBoxStyle = DefaultCheckBoxStyle);
 
 		// Return Selected Id if Checked
-		Int32 DoRadioButton(UIState& uiState, Int32 _id, const UIVector2& pos, const UIChar* text, UIFont* font, Int32 _selectedId, const UIButtonStyle& checkBoxStyle = DefaultRadioBtnStyle);
+		Int32 DoRadioButton(UIState& uiState, Int32 _id, const UIVector2& pos, const UIChar* text, Int32 _selectedId, const UIButtonStyle& checkBoxStyle = DefaultRadioBtnStyle);
 
 		// Panel
-		void DoPanel(UIState& uiState, Int32 _id, const UIRect& panelRect, const UIChar* text, UIFont* font, Float32 padding, UIVector2& contentPos, bool& bClosed, const UIPanelStyle& style = DefaultPanelStyle);
+		void DoPanel(UIState& uiState, Int32 _id, const UIRect& panelRect, const UIChar* text, Float32 padding, UIVector2& contentPos, bool& bClosed, const UIPanelStyle& style = DefaultPanelStyle);
 		
 		// Draggable Panel
-		void DoDragablePanel(UIState& uiState, Int32 _id, UIRect& panelRect, const UIChar* text, UIFont* font, Float32 padding, UIVector2& contentPos, const UIPanelStyle& style = DefaultPanelStyle);
+		void DoDragablePanel(UIState& uiState, Int32 _id, UIRect& panelRect, const UIChar* text, Float32 padding, UIVector2& contentPos, const UIPanelStyle& style = DefaultPanelStyle);
 		
 		// Slider
 		Float32 DoSlider(UIState& uiState, Int32 _id, const UIRect& rect, Float32 percent, const UISliderStyle& sliderStyle = DefaultSliderStyle);
 
 		void DrawText(UIState& uiState, Int32 _id, UIVector2& pos, const UIChar* text, const UIVector4& fillColor, UIFont* font = DefaultFont, Float32 scale = 1.0f);
-		void DrawTextInRect(UIState& uiState, Int32 _id, UIRect& rect, const UIChar* text, UIFont* font, UIVector4& fillColor, ETextAlign textAlign = TEXT_LEFT, ETextVerticalAlign vAlign = TEXT_V_CENTER, Float32 scale = 1.0f);
-		void DrawMultiLineText(UIState& uiState, Int32 _id, const UIRect& rect, const UIChar* text, UIFont* font, const UIVector4& fillColor, ETextAlign textAlign = TEXT_LEFT, ETextVerticalAlign vAlign = TEXT_V_TOP, Float32 scale = 1.0f);
+		void DrawTextInRect(UIState& uiState, Int32 _id, UIRect& rect, const UIChar* text, UIVector4& fillColor, ETextAlign textAlign = TEXT_LEFT, ETextVerticalAlign vAlign = TEXT_V_CENTER, Float32 scale = 1.0f, UIFont* font = DefaultFont);
+		void DrawMultiLineText(UIState& uiState, Int32 _id, const UIRect& rect, const UIChar* text, const UIVector4& fillColor, ETextAlign textAlign = TEXT_LEFT, ETextVerticalAlign vAlign = TEXT_V_TOP, Float32 scale = 1.0f, UIFont* font = DefaultFont);
 
 		void DrawTexture(UIState& uiState, Int32 _id, const UIVector2& pos, UITexture* texture, const UIVector4& colorMultiplier, ETextureScale textureScale = SCALE_IMAGE, const UIVector4& scaleOffset = UIVector4(0.0f));
 
@@ -453,7 +438,7 @@ namespace ZE
 		// Utils
 		Float32 Lerp(Float32 start, Float32 next, Float32 alpha);
 
-
+		// Platform Implementation
 		namespace Platform
 		{
 			UIRenderer* CreateRenderer();

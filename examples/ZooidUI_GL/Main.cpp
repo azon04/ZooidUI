@@ -31,7 +31,6 @@ int main()
 	glfwSetCursorPosCallback((GLFWwindow*)renderer->getWindowContext(), mousePositionCallback);
 	glfwSetMouseButtonCallback((GLFWwindow*)renderer->getWindowContext(), mouseButtonUpdateCallback);
 
-	ZE::UIFont* font = ZE::UIFont::loadFontFile("../../Resource/OpenSans-Regular.ttf", renderer, 16);
 	ZE::UITexture* panelBg = ZE::UITextureManager::loadTexture("../../Resource/Textures/PanelBg.png", renderer);
 
 	bool bChecked = false;
@@ -81,7 +80,7 @@ int main()
 		// Update State
 		ZE::UI::UpdateMouseState(state, (ZE::Float32)mouseX, (ZE::Float32)mouseY, buttonState);
 
- 		ZE::UI::DoDragablePanel(state, 0, panelRect, "Test Panel...", font, 10, contentPos);
+ 		ZE::UI::DoDragablePanel(state, 0, panelRect, "Test Panel...", 10, contentPos);
 
 		buttonRect.m_pos = contentPos;
 		if (ZE::UI::DoButton(state, 1, buttonRect))
@@ -89,18 +88,18 @@ int main()
 			std::cout << "Button Clicked" << std::endl;
 		}
 
-		ZE::UI::DrawTextInRect(state, 2, buttonRect, state.hotItem.id == 1 ? "Hovered" : "Test", font, ZE::UIVector4(1.0f), ZE::TEXT_CENTER);
+		ZE::UI::DrawTextInRect(state, 2, buttonRect, state.hotItem.id == 1 ? "Hovered" : "Test", ZE::UIVector4(1.0f), ZE::TEXT_CENTER);
 
 		contentPos.y += buttonRect.m_dimension.y + 10;
 
-		bChecked = ZE::UI::DoCheckBox(state, 3, contentPos, "This is a CheckBox", font, bChecked);
+		bChecked = ZE::UI::DoCheckBox(state, 3, contentPos, "This is a CheckBox", bChecked);
 
 		contentPos.y += 25;
 
 		ZE::Int32 startIndex = 4;
 		for (ZE::Int32 i = 0; i < 5; i++)
 		{
-			selectedRadioButton = ZE::UI::DoRadioButton(state, startIndex + i, contentPos, radioTexts[i], font, selectedRadioButton);
+			selectedRadioButton = ZE::UI::DoRadioButton(state, startIndex + i, contentPos, radioTexts[i], selectedRadioButton);
 			contentPos.y += 25;
 		}
  
@@ -108,7 +107,7 @@ int main()
 		sliderPercent = ZE::UI::DoSlider(state, 9, sliderRect, sliderPercent);
 
 		{
-			ZE::UI::DoPanel(state, 10, panel2Rect, "Image Scaling...", font, 10, contentPos, bPanelClosed);
+			ZE::UI::DoPanel(state, 10, panel2Rect, "Image Scaling...", 10, contentPos, bPanelClosed);
 
 			if (!bPanelClosed)
 			{
@@ -129,32 +128,32 @@ int main()
 		}
 
 		{
-			ZE::UI::DoDragablePanel(state, 14, panel3Rect, "Text Sample...", font, 10, contentPos);
+			ZE::UI::DoDragablePanel(state, 14, panel3Rect, "Text Sample...", 10, contentPos);
 
 			ZE::UIRect textRect;
 			textRect.m_pos = contentPos;
 			textRect.m_dimension = { 320, 100 };
 			
-			ZE::UI::DrawMultiLineText(state, 15, textRect, "Text Align Left.\nLorem Ipsum Dolor Sit Amet. Lorem Ipsum Dolor Sit Amet.\nLorem Ipsum Dolor Sit Amet. Anpan. Anpan. Anpan. Anpan. Anpan. Anpan.", font, ZE::UIVector4{ 1.0f, 1.0f, 1.0f, 1.0f });
+			ZE::UI::DrawMultiLineText(state, 15, textRect, "Text Align Left.\nLorem Ipsum Dolor Sit Amet. Lorem Ipsum Dolor Sit Amet.\nLorem Ipsum Dolor Sit Amet. Anpan. Anpan. Anpan. Anpan. Anpan. Anpan.", ZE::UIVector4{ 1.0f, 1.0f, 1.0f, 1.0f });
 			
 			textRect.m_pos.y += 120;
-			ZE::UI::DrawMultiLineText(state, 15, textRect, "Text Align Center.\nLorem Ipsum Dolor Sit Amet. Lorem Ipsum Dolor Sit Amet.\nLorem Ipsum Dolor Sit Amet. Anpan. Anpan. Anpan. Anpan. Anpan. Anpan.", font, ZE::UIVector4{ 1.0f, 1.0f, 1.0f, 1.0f }, ZE::TEXT_CENTER);
+			ZE::UI::DrawMultiLineText(state, 15, textRect, "Text Align Center.\nLorem Ipsum Dolor Sit Amet. Lorem Ipsum Dolor Sit Amet.\nLorem Ipsum Dolor Sit Amet. Anpan. Anpan. Anpan. Anpan. Anpan. Anpan.", ZE::UIVector4{ 1.0f, 1.0f, 1.0f, 1.0f }, ZE::TEXT_CENTER);
 			
 			textRect.m_pos.y += 120;
-			ZE::UI::DrawMultiLineText(state, 15, textRect, "Text Align Right.\nLorem Ipsum Dolor Sit Amet. Lorem Ipsum Dolor Sit Amet.\nLorem Ipsum Dolor Sit Amet. Anpan. Anpan. Anpan. Anpan. Anpan. Anpan.", font, ZE::UIVector4{ 1.0f, 1.0f, 1.0f, 1.0f }, ZE::TEXT_RIGHT);
+			ZE::UI::DrawMultiLineText(state, 15, textRect, "Text Align Right.\nLorem Ipsum Dolor Sit Amet. Lorem Ipsum Dolor Sit Amet.\nLorem Ipsum Dolor Sit Amet. Anpan. Anpan. Anpan. Anpan. Anpan. Anpan.", ZE::UIVector4{ 1.0f, 1.0f, 1.0f, 1.0f }, ZE::TEXT_RIGHT);
 		
 		}
 		sprintf_s(buffer, "CPU Time: %.2f ms", cpuTime);
 		ZE::UI::DrawText(state, -99, ZE::UIVector2{ 0.0f, .0f }, buffer, ZE::UIVector4{ 1.0f });
 
 		sprintf_s(buffer, "Draw Time: %.2f ms", drawTime);
-		ZE::UI::DrawText(state, -99, ZE::UIVector2{ 0.0f, 1.0f * font->calculateTextHeight(1.0f) }, buffer, ZE::UIVector4{ 1.0f });
+		ZE::UI::DrawText(state, -99, ZE::UIVector2{ 0.0f, 1.0f * ZE::UI::DefaultFont->calculateTextHeight(1.0f) }, buffer, ZE::UIVector4{ 1.0f });
 
 		sprintf_s(buffer, "Total Time: %.2f ms", totalTime);
-		ZE::UI::DrawText(state, -99, ZE::UIVector2{ 0.0f, 2.0f * font->calculateTextHeight(1.0f) }, buffer, ZE::UIVector4{ 1.0f });
+		ZE::UI::DrawText(state, -99, ZE::UIVector2{ 0.0f, 2.0f * ZE::UI::DefaultFont->calculateTextHeight(1.0f) }, buffer, ZE::UIVector4{ 1.0f });
 
 		sprintf_s(buffer, "FPS: %.1f", 1.0f / (totalTime / 1000.0f));
-		ZE::UI::DrawText(state, -99, ZE::UIVector2{ 0.0f, 3.0f * font->calculateTextHeight(1.0f) }, buffer, ZE::UIVector4{ 1.0f });
+		ZE::UI::DrawText(state, -99, ZE::UIVector2{ 0.0f, 3.0f * ZE::UI::DefaultFont->calculateTextHeight(1.0f) }, buffer, ZE::UIVector4{ 1.0f });
 
 
 		ZE::UI::EndFrame(state);
@@ -165,8 +164,6 @@ int main()
 
 		totalTime = cpuTime + drawTime;
 	}
-
-	UIFREE(font);
 
 	ZE::UI::Destroy(state);
 

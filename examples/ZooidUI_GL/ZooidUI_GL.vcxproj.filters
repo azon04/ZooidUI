@@ -48,6 +48,9 @@
     <ClInclude Include="..\..\Common\Timer.h">
       <Filter>Common</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\UI\ZooidUI_Config.h">
+      <Filter>UI</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\UI\ZooidUI.cpp">

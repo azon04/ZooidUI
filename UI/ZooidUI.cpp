@@ -14,6 +14,8 @@
 #define UIMAX(a, b) (a > b ? (a) : (b))
 #define UIMIN(a, b) (a < b ? (a) : (b))
 
+#define MERGE_PATH(p1, p2) p1 p2
+
 namespace ZE
 {
 	UIButtonStyle UI::DefaultButtonStyle;
@@ -32,21 +34,22 @@ namespace ZE
 
 		UITextureManager::Init();
 
+		;
 		// Default Textures
-		ZE::UITexture* checkBoxBg = ZE::UITextureManager::loadTexture("../../Resource/Textures/CheckBox_Bg.png", uiState.renderer);
-		ZE::UITexture* checkBoxChecked = ZE::UITextureManager::loadTexture("../../Resource/Textures/CheckBox_Checked.png", uiState.renderer);
-		ZE::UITexture* radioBtnBg = ZE::UITextureManager::loadTexture("../../Resource/Textures/RadioBtn_Bg.png", uiState.renderer);
-		ZE::UITexture* radioBtnChecked = ZE::UITextureManager::loadTexture("../../Resource/Textures/RadioBtn_Checked.png", uiState.renderer);
-		ZE::UITexture* panelOpenIcon = ZE::UITextureManager::loadTexture("../../Resource/Textures/PanelOpen.png", uiState.renderer);
-		ZE::UITexture* panelClosedIcon = ZE::UITextureManager::loadTexture("../../Resource/Textures/PanelClosed.png", uiState.renderer);
-		ZE::UITexture* panelBg = ZE::UITextureManager::loadTexture("../../Resource/Textures/PanelBgSmall_Style.png", uiState.renderer);
-		ZE::UITexture* panelClosedBg = ZE::UITextureManager::loadTexture("../../Resource/Textures/PanelBgSmallClosed_Style.png", uiState.renderer);
-		ZE::UITexture* ButtonBgUp = ZE::UITextureManager::loadTexture("../../Resource/Textures/ButtonBg_Up.png", uiState.renderer);
-		ZE::UITexture* ButtonBgHovered = ZE::UITextureManager::loadTexture("../../Resource/Textures/ButtonBg_Hovered.png", uiState.renderer);
-		ZE::UITexture* ButtonBgDown = ZE::UITextureManager::loadTexture("../../Resource/Textures/ButtonBg_Down.png", uiState.renderer);
+		ZE::UITexture* checkBoxBg = ZE::UITextureManager::loadTexture(MERGE_PATH(RESOURCE_FOLDER,"Textures/CheckBox_Bg.png"), uiState.renderer);
+		ZE::UITexture* checkBoxChecked = ZE::UITextureManager::loadTexture(MERGE_PATH(RESOURCE_FOLDER, "Textures/CheckBox_Checked.png"), uiState.renderer);
+		ZE::UITexture* radioBtnBg = ZE::UITextureManager::loadTexture(MERGE_PATH(RESOURCE_FOLDER, "Textures/RadioBtn_Bg.png"), uiState.renderer);
+		ZE::UITexture* radioBtnChecked = ZE::UITextureManager::loadTexture(MERGE_PATH(RESOURCE_FOLDER, "Textures/RadioBtn_Checked.png"), uiState.renderer);
+		ZE::UITexture* panelOpenIcon = ZE::UITextureManager::loadTexture(MERGE_PATH(RESOURCE_FOLDER, "Textures/PanelOpen.png"), uiState.renderer);
+		ZE::UITexture* panelClosedIcon = ZE::UITextureManager::loadTexture(MERGE_PATH(RESOURCE_FOLDER, "Textures/PanelClosed.png"), uiState.renderer);
+		ZE::UITexture* panelBg = ZE::UITextureManager::loadTexture(MERGE_PATH(RESOURCE_FOLDER, "Textures/PanelBgSmall_Style.png"), uiState.renderer);
+		ZE::UITexture* panelClosedBg = ZE::UITextureManager::loadTexture(MERGE_PATH(RESOURCE_FOLDER, "Textures/PanelBgSmallClosed_Style.png"), uiState.renderer);
+		ZE::UITexture* ButtonBgUp = ZE::UITextureManager::loadTexture(MERGE_PATH(RESOURCE_FOLDER, "Textures/ButtonBg_Up.png"), uiState.renderer);
+		ZE::UITexture* ButtonBgHovered = ZE::UITextureManager::loadTexture(MERGE_PATH(RESOURCE_FOLDER, "Textures/ButtonBg_Hovered.png"), uiState.renderer);
+		ZE::UITexture* ButtonBgDown = ZE::UITextureManager::loadTexture(MERGE_PATH(RESOURCE_FOLDER, "Textures/ButtonBg_Down.png"), uiState.renderer);
 
 		// Default Font
-		DefaultFont = ZE::UIFont::loadFontFile("../../Resource/OpenSans-Regular.ttf", uiState.renderer, 16);
+		DefaultFont = ZE::UIFont::loadFontFile(MERGE_PATH(RESOURCE_FOLDER, DEFAULT_FONT_PATH), uiState.renderer, 16);
 
 		// Button Default
 		DefaultButtonStyle.up.texture = ButtonBgUp;
@@ -118,7 +121,6 @@ namespace ZE
 
 	void UI::Destroy(UIState& uiState)
 	{
-		
 		UITextureManager::Destroy();
 
 		if (uiState.renderer)
@@ -197,8 +199,9 @@ namespace ZE
 		return bPressed;
 	}
 
-	bool UI::DoCheckBox(UIState& uiState, Int32 _id, const UIVector2& pos, const UIChar* text, UIFont* font, bool bChecked, const UIButtonStyle& checkBoxStyle)
+	bool UI::DoCheckBox(UIState& uiState, Int32 _id, const UIVector2& pos, const UIChar* text, bool bChecked, const UIButtonStyle& checkBoxStyle)
 	{
+		UIFont* font = checkBoxStyle.fontStyle.font ? checkBoxStyle.fontStyle.font : DefaultFont;
 		UIRect rect;
 		rect.m_pos = pos;
 		rect.m_dimension.x = 0;
@@ -295,15 +298,17 @@ namespace ZE
 
 		if (text[0] != '\0')
 		{
-			uiState.drawer->DrawText(UIVector2{ pos.x + textOffsetX + 5, pos.y + (rect.m_dimension.y - font->calculateTextHeight(1.0f)) / 2 }, UIVector4(1.0f), font, text);
+			uiState.drawer->DrawText(UIVector2{ pos.x + textOffsetX + 5, pos.y + (rect.m_dimension.y - font->calculateTextHeight(1.0f)) / 2 }, UIVector4(1.0f), font, text, checkBoxStyle.fontStyle.fontScale);
 		}
 
 		return bChecked;
 	}
 
-	ZE::Int32 UI::DoRadioButton(UIState& uiState, Int32 _id, const UIVector2& pos, const UIChar* text, UIFont* font, Int32 _selectedId, const UIButtonStyle& radioButtonStyle)
+	ZE::Int32 UI::DoRadioButton(UIState& uiState, Int32 _id, const UIVector2& pos, const UIChar* text, Int32 _selectedId, const UIButtonStyle& radioButtonStyle)
 	{
 		bool bChecked = _id == _selectedId;
+
+		UIFont* font = radioButtonStyle.fontStyle.font ? radioButtonStyle.fontStyle.font : DefaultFont;
 
 		UIRect rect;
 		rect.m_pos = pos;
@@ -407,8 +412,9 @@ namespace ZE
 		return _selectedId;
 	}
 
-	void UI::DoPanel(UIState& uiState, Int32 _id, const UIRect& panelRect, const UIChar* text, UIFont* font, Float32 padding, UIVector2& contentPos, bool& bClosed, const UIPanelStyle& style)
+	void UI::DoPanel(UIState& uiState, Int32 _id, const UIRect& panelRect, const UIChar* text, Float32 padding, UIVector2& contentPos, bool& bClosed, const UIPanelStyle& style)
 	{
+		UIFont* font = style.headerFontStyle.font ? style.headerFontStyle.font : DefaultFont;
 		Float32 xOffset = padding;
 		Float32 headerHeight = style.headerHeight;
 
@@ -504,14 +510,15 @@ namespace ZE
 			bClosed = !bClosed;
 		}
 
-		DrawTextInRect(uiState, -99, headerRect, text, font, UIVector4{ 1.0f });
+		DrawTextInRect(uiState, -99, headerRect, text, UIVector4{ 1.0f }, ZE::TEXT_LEFT, TEXT_V_CENTER, style.headerFontStyle.fontScale, font);
 
 		contentPos.x = panelRect.m_pos.x + padding;
 		contentPos.y = panelRect.m_pos.y + headerRect.m_dimension.y + padding;
 	}
 
-	void UI::DoDragablePanel(UIState& uiState, Int32 _id, UIRect& panelRect, const UIChar* text, UIFont* font, Float32 padding, UIVector2& contentPos, const UIPanelStyle& style)
+	void UI::DoDragablePanel(UIState& uiState, Int32 _id, UIRect& panelRect, const UIChar* text, Float32 padding, UIVector2& contentPos, const UIPanelStyle& style)
 	{
+		UIFont* font = style.headerFontStyle.font ? style.headerFontStyle.font : DefaultFont;
 		UIRect headerRect;
 		headerRect.m_pos = panelRect.m_pos + UIVector2{ padding, 0.0f };
 		headerRect.m_dimension.x = panelRect.m_dimension.x - padding * 2;
@@ -552,7 +559,7 @@ namespace ZE
 		}
 
 		//headerRect.m_dimension.y -= padding * 2;
-		DrawTextInRect(uiState, -99, headerRect, text, font, UIVector4(1.0f));
+		DrawTextInRect(uiState, -99, headerRect, text, UIVector4(1.0f), TEXT_LEFT, TEXT_V_CENTER, style.headerFontStyle.fontScale, font);
 
 		contentPos.x = panelRect.m_pos.x + padding;
 		contentPos.y = panelRect.m_pos.y + style.headerHeight + padding;
@@ -618,7 +625,7 @@ namespace ZE
 		uiState.drawer->DrawText(pos, fillColor, font, text, scale);
 	}
 
-	void UI::DrawTextInRect(UIState& uiState, Int32 _id, UIRect& rect, const UIChar* text, UIFont* font, UIVector4& fillColor, ETextAlign textAlign /*= TEXT_LEFT*/, ETextVerticalAlign vAlign /*= TEXT_V_CENTER*/, Float32 scale /*= 1.0f*/)
+	void UI::DrawTextInRect(UIState& uiState, Int32 _id, UIRect& rect, const UIChar* text, UIVector4& fillColor, ETextAlign textAlign /*= TEXT_LEFT*/, ETextVerticalAlign vAlign /*= TEXT_V_CENTER*/, Float32 scale /*= 1.0f*/, UIFont* font)
 	{
 		UIVector2 textDimension;
 		textDimension.x = font->calculateTextLength(text, scale);
@@ -648,7 +655,7 @@ namespace ZE
 		uiState.drawer->DrawText(actualPos, fillColor, font, text, scale);
 	}
 
-	void UI::DrawMultiLineText(UIState& uiState, Int32 _id, const UIRect& rect, const UIChar* text, UIFont* font, const UIVector4& fillColor, ETextAlign textAlign /*= TEXT_V_CENTER*/, ETextVerticalAlign vAlign /*= TEXT_V_TOP*/, Float32 scale /*= 1.0f*/)
+	void UI::DrawMultiLineText(UIState& uiState, Int32 _id, const UIRect& rect, const UIChar* text, const UIVector4& fillColor, ETextAlign textAlign /*= TEXT_V_CENTER*/, ETextVerticalAlign vAlign /*= TEXT_V_TOP*/, Float32 scale /*= 1.0f*/, UIFont* font)
 	{
 		UIVector2 textDimension;
 		textDimension.x = rect.m_dimension.x;
@@ -689,10 +696,16 @@ namespace ZE
 
 	void UIDrawer::DrawTexture(const UIRect& rect, UITexture* texture, const UIVector4& fillColor, ETextureScale textureScale, const UIVector4& scaleOffset)
 	{
-#if defined(ZUI_USE_RECT_INSTANCING)
+#if defined(ZUI_GROUP_PER_TEXTURE) && defined(ZUI_USE_RECT_INSTANCING)
 		UIDrawItem* drawItem = m_currentDrawList->getTextureInstanceDrawItem(texture->getTextureHandle());
-#else
+#elif defined(ZUI_GROUP_PER_TEXTURE)
 		UIDrawItem* drawItem = m_currentDrawList->getTextureDrawItem(texture->getTextureHandle());
+#else
+		UIDrawItem* drawItem = m_currentDrawList->getNextDrawItem();
+		drawItem->m_textureHandle = texture->getTextureHandle();
+	#if defined(ZUI_USE_RECT_INSTANCING)
+		drawItem->m_bUsingRectInstance = true;
+	#endif
 #endif
 
 		UIVector2 positions[4] = { rect.m_pos, 
@@ -883,14 +896,18 @@ namespace ZE
 
 	void UIDrawer::DrawRect(const UIRect& rect, const UIVector4& fillColor)
 	{
-#if defined(ZUI_USE_RECT_INSTANCING)
+#if defined(ZUI_GROUP_PER_TEXTURE) && defined(ZUI_USE_RECT_INSTANCING)
 		UIDrawItem* drawItem = m_currentDrawList->getTextureInstanceDrawItem(0); // Zero for non texture
+#elif defined(ZUI_GROUP_PER_TEXTURE)
+		UIDrawItem* drawItem = m_currentDrawList->getTextureDrawItem(0); // Zero for non texture
+#else
+		UIDrawItem* drawItem = m_currentDrawList->getNextDrawItem();
+#endif
 
+#if defined(ZUI_USE_RECT_INSTANCING)
 		drawItem->m_instances.push_back(UIInstance{ rect.m_pos, m_currentDepth, rect.m_dimension, rect.m_roundness, fillColor });
 		drawItem->m_bUsingRectInstance = true;
 #else
-		UIDrawItem* drawItem = m_currentDrawList->getNextDrawItem();
-
 		UIVector2 positions[4] = { rect.m_pos,
 		{ rect.m_pos.x + rect.m_dimension.x, rect.m_pos.y },
 		{ rect.m_pos.x, rect.m_pos.y + rect.m_dimension.y },
@@ -918,8 +935,11 @@ namespace ZE
 
 	void UIDrawer::DrawText(UIVector2& pos, const UIVector4& fillColor, UIFont* font, const UIChar* text, Float32 scale /*= 1.0f*/, bool bWordWrap /*= false*/, Float32 maxWidth /*= 0*/, ETextAlign wrapTextAlign /*= TEXT_LEFT*/)
 	{
-#if defined(ZUI_USE_FONT_INSTANCING)
+#if defined(ZUI_USE_FONT_INSTANCING) && !defined(ZUI_USE_SINGLE_TEXT_ONLY)
 		UIDrawItem* drawItem = m_currentDrawList->getTextureInstanceDrawItem(font->getTextureHandle());
+#elif defined(ZUI_USE_SINGLE_TEXT_ONLY) || !defined(ZUI_GROUP_PER_TEXTURE)
+		UIDrawItem* drawItem = m_currentDrawList->getNextDrawItem();
+		drawItem->m_textureHandle = font->getTextureHandle();
 #else
 		UIDrawItem* drawItem = m_currentDrawList->getTextureDrawItem(font->getTextureHandle());
 #endif
@@ -940,8 +960,13 @@ namespace ZE
 #endif
 		}
 
+#if defined(ZUI_USE_SINGLE_TEXT_ONLY)
+		drawItem->m_bUsingRectInstance = true;
+#endif
 		drawItem->m_bFont = true;
+#if defined(ZUI_GROUP_PER_TEXTURE)
 		drawItem->m_pass = 1;
+#endif
 
 		m_currentDepth += m_step;
 	}
