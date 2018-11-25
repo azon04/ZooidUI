@@ -389,6 +389,9 @@ namespace ZE
 	// Functions to use to draw everything
 	namespace UI
 	{
+		// UI State
+		extern UIState MainUIState;
+
 		// Default Styles
 		extern UIButtonStyle DefaultButtonStyle;
 		extern UIButtonStyle DefaultCheckBoxStyle;
@@ -397,39 +400,42 @@ namespace ZE
 		extern UIPanelStyle DefaultPanelStyle;
 		extern UIFont* DefaultFont;
 
+		// Getter
+		UIState* GetUIState();
+
 		// Function
-		void Init(UIState& uiState, Int32 width, Int32 height);
-		void Destroy(UIState& uiState);
+		void Init(Int32 width, Int32 height);
+		void Destroy();
 
-		void BeginFrame(UIState& uiState);
-		void EndFrame(UIState& uiState);
+		void BeginFrame();
+		void EndFrame();
 
-		void UpdateMouseState(UIState& uiState, Float32 mouseX, Float32 mouseY, EButtonState mouseDown);
+		void UpdateMouseState(Float32 mouseX, Float32 mouseY, EButtonState mouseDown);
 
-		bool DoButton(UIState& uiState, Int32 _id, UIRect& rect, const UIButtonStyle& buttonStyle = DefaultButtonStyle);
+		bool DoButton(Int32 _id, UIRect& rect, const UIButtonStyle& buttonStyle = DefaultButtonStyle);
 		
 		// Return True if Checked
-		bool DoCheckBox(UIState& uiState, Int32 _id, const UIVector2& pos, const UIChar* text, bool bChecked, const UIButtonStyle& checkBoxStyle = DefaultCheckBoxStyle);
+		bool DoCheckBox(Int32 _id, const UIVector2& pos, const UIChar* text, bool bChecked, const UIButtonStyle& checkBoxStyle = DefaultCheckBoxStyle);
 
 		// Return Selected Id if Checked
-		Int32 DoRadioButton(UIState& uiState, Int32 _id, const UIVector2& pos, const UIChar* text, Int32 _selectedId, const UIButtonStyle& checkBoxStyle = DefaultRadioBtnStyle);
+		Int32 DoRadioButton(Int32 _id, const UIVector2& pos, const UIChar* text, Int32 _selectedId, const UIButtonStyle& checkBoxStyle = DefaultRadioBtnStyle);
 
 		// Panel
-		void DoPanel(UIState& uiState, Int32 _id, const UIRect& panelRect, const UIChar* text, Float32 padding, UIVector2& contentPos, bool& bClosed, const UIPanelStyle& style = DefaultPanelStyle);
+		void DoPanel(Int32 _id, const UIRect& panelRect, const UIChar* text, Float32 padding, UIVector2& contentPos, bool& bClosed, const UIPanelStyle& style = DefaultPanelStyle);
 		
 		// Draggable Panel
-		void DoDragablePanel(UIState& uiState, Int32 _id, UIRect& panelRect, const UIChar* text, Float32 padding, UIVector2& contentPos, const UIPanelStyle& style = DefaultPanelStyle);
+		void DoDragablePanel(Int32 _id, UIRect& panelRect, const UIChar* text, Float32 padding, UIVector2& contentPos, const UIPanelStyle& style = DefaultPanelStyle);
 		
 		// Slider
-		Float32 DoSlider(UIState& uiState, Int32 _id, const UIRect& rect, Float32 percent, const UISliderStyle& sliderStyle = DefaultSliderStyle);
+		Float32 DoSlider(Int32 _id, const UIRect& rect, Float32 percent, const UISliderStyle& sliderStyle = DefaultSliderStyle);
 
-		void DrawText(UIState& uiState, Int32 _id, UIVector2& pos, const UIChar* text, const UIVector4& fillColor, UIFont* font = DefaultFont, Float32 scale = 1.0f);
-		void DrawTextInRect(UIState& uiState, Int32 _id, UIRect& rect, const UIChar* text, UIVector4& fillColor, ETextAlign textAlign = TEXT_LEFT, ETextVerticalAlign vAlign = TEXT_V_CENTER, Float32 scale = 1.0f, UIFont* font = DefaultFont);
-		void DrawMultiLineText(UIState& uiState, Int32 _id, const UIRect& rect, const UIChar* text, const UIVector4& fillColor, ETextAlign textAlign = TEXT_LEFT, ETextVerticalAlign vAlign = TEXT_V_TOP, Float32 scale = 1.0f, UIFont* font = DefaultFont);
+		void DrawText(Int32 _id, UIVector2& pos, const UIChar* text, const UIVector4& fillColor, UIFont* font = DefaultFont, Float32 scale = 1.0f);
+		void DrawTextInRect(Int32 _id, UIRect& rect, const UIChar* text, UIVector4& fillColor, ETextAlign textAlign = TEXT_LEFT, ETextVerticalAlign vAlign = TEXT_V_CENTER, Float32 scale = 1.0f, UIFont* font = DefaultFont);
+		void DrawMultiLineText(Int32 _id, const UIRect& rect, const UIChar* text, const UIVector4& fillColor, ETextAlign textAlign = TEXT_LEFT, ETextVerticalAlign vAlign = TEXT_V_TOP, Float32 scale = 1.0f, UIFont* font = DefaultFont);
 
-		void DrawTexture(UIState& uiState, Int32 _id, const UIVector2& pos, UITexture* texture, const UIVector4& colorMultiplier, ETextureScale textureScale = SCALE_IMAGE, const UIVector4& scaleOffset = UIVector4(0.0f));
+		void DrawTexture(Int32 _id, const UIVector2& pos, UITexture* texture, const UIVector4& colorMultiplier, ETextureScale textureScale = SCALE_IMAGE, const UIVector4& scaleOffset = UIVector4(0.0f));
 
-		void DrawTexture(UIState& uiState, Int32 _id, const UIRect& rect, UITexture* texture, const UIVector4& colorMultiplier, ETextureScale textureScale = SCALE_IMAGE, const UIVector4& scaleOffset = UIVector4(0.0f));
+		void DrawTexture(Int32 _id, const UIRect& rect, UITexture* texture, const UIVector4& colorMultiplier, ETextureScale textureScale = SCALE_IMAGE, const UIVector4& scaleOffset = UIVector4(0.0f));
 
 		// Utils
 		Float32 Lerp(Float32 start, Float32 next, Float32 alpha);
