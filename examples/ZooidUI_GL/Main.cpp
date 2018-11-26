@@ -31,7 +31,7 @@ int main()
 	glfwSetCursorPosCallback((GLFWwindow*)renderer->getWindowContext(), mousePositionCallback);
 	glfwSetMouseButtonCallback((GLFWwindow*)renderer->getWindowContext(), mouseButtonUpdateCallback);
 
-	ZE::UITexture* panelBg = ZE::UITextureManager::loadTexture("../../Resource/Textures/PanelBg.png", renderer);
+	ZE::UITexture* panelBg = ZE::UI::LoadTexture("../../Resource/Textures/PanelBg.png");
 
 	bool bChecked = false;
 	ZE::Int32 selectedRadioButton = 4;
@@ -145,22 +145,22 @@ int main()
 		}
 		
 		sprintf_s(buffer, "CPU Time: %.2f ms", cpuTime);
-		ZE::UI::DrawText(-99, ZE::UIVector2{ 0.0f, .0f }, buffer, ZE::UIVector4{ 1.0f });
+		ZE::UI::DrawTextInPos(-99, ZE::UIVector2{ 0.0f, .0f }, buffer, ZE::UIVector4{ 1.0f });
 
 		sprintf_s(buffer, "Draw Time: %.2f ms", drawTime);
-		ZE::UI::DrawText(-99, ZE::UIVector2{ 0.0f, 1.0f * ZE::UI::DefaultFont->calculateTextHeight(1.0f) }, buffer, ZE::UIVector4{ 1.0f });
+		ZE::UI::DrawTextInPos(-99, ZE::UIVector2{ 0.0f, 1.0f * ZE::UI::DefaultFont->calculateTextHeight(1.0f) }, buffer, ZE::UIVector4{ 1.0f });
 
 		sprintf_s(buffer, "Total Time: %.2f ms", totalTime);
-		ZE::UI::DrawText(-99, ZE::UIVector2{ 0.0f, 2.0f * ZE::UI::DefaultFont->calculateTextHeight(1.0f) }, buffer, ZE::UIVector4{ 1.0f });
+		ZE::UI::DrawTextInPos(-99, ZE::UIVector2{ 0.0f, 2.0f * ZE::UI::DefaultFont->calculateTextHeight(1.0f) }, buffer, ZE::UIVector4{ 1.0f });
 
 		sprintf_s(buffer, "FPS: %.1f", 1.0f / (totalTime / 1000.0f));
-		ZE::UI::DrawText(-99, ZE::UIVector2{ 0.0f, 3.0f * ZE::UI::DefaultFont->calculateTextHeight(1.0f) }, buffer, ZE::UIVector4{ 1.0f });
+		ZE::UI::DrawTextInPos(-99, ZE::UIVector2{ 0.0f, 3.0f * ZE::UI::DefaultFont->calculateTextHeight(1.0f) }, buffer, ZE::UIVector4{ 1.0f });
 
 
 		ZE::UI::EndFrame();
 		cpuTime = ZE::UI::Lerp( cpuTime, timer.ResetAndGetDeltaMS(), cpuTime == 0.0f ? 1.0f : .01f);
 		
-		renderer->ProcessCurrentDrawList();
+		ZE::UI::ProcessDrawList();
 		drawTime = ZE::UI::Lerp( drawTime, timer.ResetAndGetDeltaMS(), drawTime == 0.0f ? 1.0f : .01f);
 
 		totalTime = cpuTime + drawTime;
