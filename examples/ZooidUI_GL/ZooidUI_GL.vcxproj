@@ -161,7 +161,7 @@ XCOPY "..\..\Dependencies\freetype-2.9.1\win32\lib-vc2015\release\*.DLL" "$(Targ
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Common\Timer.h" />
-    <ClInclude Include="..\..\UI\External\stb_image.h" />
+    <ClInclude Include="..\..\UI\External\Image\stb_image.h" />
     <ClInclude Include="..\..\UI\UIRenderer.h" />
     <ClInclude Include="..\..\UI\ZooidUI.h" />
     <ClInclude Include="..\..\UI\ZooidUI_Config.h" />
@@ -169,7 +169,7 @@ XCOPY "..\..\Dependencies\freetype-2.9.1\win32\lib-vc2015\release\*.DLL" "$(Targ
     <ClInclude Include="Shader.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\UI\External\stb_image.cpp" />
+    <ClCompile Include="..\..\UI\External\Image\stb_image.cpp" />
     <ClCompile Include="..\..\UI\UIRenderer.cpp" />
     <ClCompile Include="..\..\UI\ZooidUI.cpp" />
     <ClCompile Include="GL_UIRenderer.cpp" />

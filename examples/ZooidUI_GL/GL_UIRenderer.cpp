@@ -71,12 +71,14 @@ namespace ZE
 		glGenBuffers(1, &VBO_rect);
 		glGenVertexArrays(1, &VAO_rect);
 
-		UIVertex rectArray[6] = { { UIVector2{0.0f, 0.0f}, 0.0f, UIVector2{ 0.0f, 0.0f }, UIVector4{ 1.0f, 1.0f, 1.0f, 1.0f } },
+		UIVertex rectArray[6] = { 
 								{ UIVector2{ 1.0f, 0.0f }, 0.0f, UIVector2{ 1.0f, 0.0f }, UIVector4{ 1.0f, 1.0f, 1.0f, 1.0f } },
-								{ UIVector2{ 1.0f, 1.0f }, 0.0f, UIVector2{ 1.0f, 1.0f }, UIVector4{ 1.0f, 1.0f, 1.0f, 1.0f } },
 								{ UIVector2{ 0.0f, 0.0f }, 0.0f, UIVector2{ 0.0f, 0.0f }, UIVector4{ 1.0f, 1.0f, 1.0f, 1.0f } },
+								{ UIVector2{ 1.0f, 1.0f }, 0.0f, UIVector2{ 1.0f, 1.0f }, UIVector4{ 1.0f, 1.0f, 1.0f, 1.0f } },
 								{ UIVector2{ 1.0f, 1.0f }, 0.0f, UIVector2{ 1.0f, 1.0f }, UIVector4{ 1.0f, 1.0f, 1.0f, 1.0f } }, 
-								{ UIVector2{ 0.0f, 1.0f }, 0.0f, UIVector2{ 0.0f, 1.0f }, UIVector4{ 1.0f, 1.0f, 1.0f, 1.0f } } };
+								{ UIVector2{ 0.0f, 0.0f }, 0.0f, UIVector2{ 0.0f, 0.0f }, UIVector4{ 1.0f, 1.0f, 1.0f, 1.0f } },
+								{ UIVector2{ 0.0f, 1.0f }, 0.0f, UIVector2{ 0.0f, 1.0f }, UIVector4{ 1.0f, 1.0f, 1.0f, 1.0f } } 
+								};
 		
 		
 		glBindVertexArray(VAO_rect);
@@ -99,7 +101,7 @@ namespace ZE
 		glGenBuffers(1, &VBO_instance);
 		glBindBuffer(GL_ARRAY_BUFFER, VBO_instance);
 		glBufferData(GL_ARRAY_BUFFER, maxInstanceDraw * sizeof(UIInstance), nullptr, GL_DYNAMIC_DRAW);
-
+		
 		// Position
 		glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(UIInstance), (GLvoid*)0);
 		glEnableVertexAttribArray(3);
@@ -230,8 +232,10 @@ namespace ZE
 		glEnable(GL_DEPTH_TEST);
 		glEnable(GL_MULTISAMPLE);
 		glEnable(GL_BLEND);
-		//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ZERO);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glEnable(GL_CULL_FACE);
+		glFrontFace(GL_CCW);
+		//glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ZERO);
 
 		glViewport(0, 0, width, height);
 

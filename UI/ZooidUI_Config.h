@@ -5,13 +5,13 @@
 // Put Additional Includes here if Needed
 #include <cstdint>
 #include <vector>
-#include <map>
+#include <unordered_map>
 
 // Array Type that use in this code. Change to other type if needed
 #define UIArray std::vector
 
 // HasMap type that use in this code. Change to other type if needed
-#define UIHashMap std::map
+#define UIHashMap std::unordered_map
 
 // HashMap Find
 #define HashMapHas(hashmap, key) hashmap.find(key) != hashmap.end()

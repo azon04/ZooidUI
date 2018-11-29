@@ -28,6 +28,9 @@
     <Filter Include="Common">
       <UniqueIdentifier>{c5d5c4fd-cd21-4e9f-ac3b-62049f448fb0}</UniqueIdentifier>
     </Filter>
+    <Filter Include="GL\External\Image">
+      <UniqueIdentifier>{dd293f4b-8109-4e4d-a1a7-ab4df85e218c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\UI\ZooidUI.h">
@@ -42,14 +45,14 @@
     <ClInclude Include="Shader.h">
       <Filter>GL</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\UI\External\stb_image.h">
-      <Filter>GL\External</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Common\Timer.h">
       <Filter>Common</Filter>
     </ClInclude>
     <ClInclude Include="..\..\UI\ZooidUI_Config.h">
       <Filter>UI</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\UI\External\Image\stb_image.h">
+      <Filter>GL\External\Image</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -68,8 +71,8 @@
     <ClCompile Include="Shader.cpp">
       <Filter>GL</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\UI\External\stb_image.cpp">
-      <Filter>GL\External</Filter>
+    <ClCompile Include="..\..\UI\External\Image\stb_image.cpp">
+      <Filter>GL\External\Image</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

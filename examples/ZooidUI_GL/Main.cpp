@@ -80,6 +80,18 @@ int main()
 		// Update State
 		ZE::UI::UpdateMouseState((ZE::Float32)mouseX, (ZE::Float32)mouseY, buttonState);
 
+		sprintf_s(buffer, "CPU Time: %.2f ms", cpuTime);
+		ZE::UI::DrawTextInPos(-99, ZE::UIVector2{ 0.0f, .0f }, buffer, ZE::UIVector4{ 1.0f });
+
+		sprintf_s(buffer, "Draw Time: %.2f ms", drawTime);
+		ZE::UI::DrawTextInPos(-99, ZE::UIVector2{ 0.0f, 1.0f * ZE::UI::DefaultFont->calculateTextHeight(1.0f) }, buffer, ZE::UIVector4{ 1.0f });
+
+		sprintf_s(buffer, "Total Time: %.2f ms", totalTime);
+		ZE::UI::DrawTextInPos(-99, ZE::UIVector2{ 0.0f, 2.0f * ZE::UI::DefaultFont->calculateTextHeight(1.0f) }, buffer, ZE::UIVector4{ 1.0f });
+
+		sprintf_s(buffer, "FPS: %.1f", 1.0f / (totalTime / 1000.0f));
+		ZE::UI::DrawTextInPos(-99, ZE::UIVector2{ 0.0f, 3.0f * ZE::UI::DefaultFont->calculateTextHeight(1.0f) }, buffer, ZE::UIVector4{ 1.0f });
+
  		ZE::UI::DoDragablePanel(0, panelRect, "Test Panel...", 10, contentPos);
 
 		buttonRect.m_pos = contentPos;
@@ -144,19 +156,6 @@ int main()
 		
 		}
 		
-		sprintf_s(buffer, "CPU Time: %.2f ms", cpuTime);
-		ZE::UI::DrawTextInPos(-99, ZE::UIVector2{ 0.0f, .0f }, buffer, ZE::UIVector4{ 1.0f });
-
-		sprintf_s(buffer, "Draw Time: %.2f ms", drawTime);
-		ZE::UI::DrawTextInPos(-99, ZE::UIVector2{ 0.0f, 1.0f * ZE::UI::DefaultFont->calculateTextHeight(1.0f) }, buffer, ZE::UIVector4{ 1.0f });
-
-		sprintf_s(buffer, "Total Time: %.2f ms", totalTime);
-		ZE::UI::DrawTextInPos(-99, ZE::UIVector2{ 0.0f, 2.0f * ZE::UI::DefaultFont->calculateTextHeight(1.0f) }, buffer, ZE::UIVector4{ 1.0f });
-
-		sprintf_s(buffer, "FPS: %.1f", 1.0f / (totalTime / 1000.0f));
-		ZE::UI::DrawTextInPos(-99, ZE::UIVector2{ 0.0f, 3.0f * ZE::UI::DefaultFont->calculateTextHeight(1.0f) }, buffer, ZE::UIVector4{ 1.0f });
-
-
 		ZE::UI::EndFrame();
 		cpuTime = ZE::UI::Lerp( cpuTime, timer.ResetAndGetDeltaMS(), cpuTime == 0.0f ? 1.0f : .01f);
 		
