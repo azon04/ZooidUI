@@ -48,6 +48,7 @@ namespace ZE
 		virtual void destroyTexture(UInt32 textureHandle);
 		virtual void destroyTextures();
 		virtual void* getWindowContext() override { return m_window; }
+		virtual void resizeWindow(int width, int height);
 
 	protected:
 

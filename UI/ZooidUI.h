@@ -213,7 +213,7 @@ namespace ZE
 
 		UIVector2 getDimension() const { return m_shapeDimension; }
 		Float32 getRoundness() const { return m_roundness; }
-		UInt32 getPass() const { return m_pass; }
+		UInt32 getLayer() const { return m_layer; }
 
 		void reset();
 
@@ -227,7 +227,7 @@ namespace ZE
 
 		bool m_bFont = false;
 		bool m_bUsingRectInstance = false;
-		UInt32 m_pass = 0;
+		UInt32 m_layer = 0;
 	};
 
 	class UIDrawList
@@ -348,6 +348,7 @@ namespace ZE
 		void DrawShape(UIArray<UIVector2>& points, const UIVector4& fillColor);
 		void Reset();
 		void SwapBuffer();
+		void SetLayer(Int32 layer) { m_currentLayer = layer; }
 
 		UIDrawList* getCurrentDrawList() { return m_currentDrawList; }
 
@@ -355,6 +356,7 @@ namespace ZE
 		UIDrawList m_drawLists[2]; // Double Buffer
 		UIDrawList* m_currentDrawList; // Pointer to current Drawlist
 		Float32 m_currentDepth = 0.00001f;
+		Int32 m_currentLayer = 0;
 		const Float32 m_step = 0.00001f;
 	};
 
@@ -400,6 +402,14 @@ namespace ZE
 		UIFontStyle headerFontStyle;
 	};
 
+	struct UIDropdownStyle
+	{
+		UIButtonStyle dropdownButtonStyle;
+		UIStyle selectorHoverStyle;
+		UIStyle selectorStyle;
+		UIFontStyle selectorFontStyle;
+	};
+
 	// Functions to use to draw everything
 	namespace UI
 	{
@@ -412,6 +422,7 @@ namespace ZE
 		extern UIButtonStyle DefaultRadioBtnStyle;
 		extern UISliderStyle DefaultSliderStyle;
 		extern UIPanelStyle DefaultPanelStyle;
+		extern UIDropdownStyle DefaultDropdownStyle;
 		extern UIFont* DefaultFont;
 
 		// Getter
@@ -419,6 +430,7 @@ namespace ZE
 
 		// Function
 		void Init(Int32 width, Int32 height);
+		void ResizeWindow(Int32 width, Int32 height);
 		void Destroy();
 
 		void BeginFrame();
@@ -442,6 +454,9 @@ namespace ZE
 		
 		// Slider
 		Float32 DoSlider(Int32 _id, const UIRect& rect, Float32 percent, const UISliderStyle& sliderStyle = DefaultSliderStyle);
+
+		// DropDown
+		Int32 DoDropDown(Int32 _id, const UIRect& rect, Int32 selectedIdx, const UIChar** textOptions, Int32 optionCount, const UIDropdownStyle& style = DefaultDropdownStyle);
 
 		void DrawTextInPos(Int32 _id, UIVector2& pos, const UIChar* text, const UIVector4& fillColor, UIFont* font = DefaultFont, Float32 scale = 1.0f);
 		void DrawTextInRect(Int32 _id, UIRect& rect, const UIChar* text, UIVector4& fillColor, ETextAlign textAlign = TEXT_LEFT, ETextVerticalAlign vAlign = TEXT_V_CENTER, Float32 scale = 1.0f, UIFont* font = DefaultFont);

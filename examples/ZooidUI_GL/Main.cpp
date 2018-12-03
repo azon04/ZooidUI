@@ -19,6 +19,11 @@ void mouseButtonUpdateCallback(GLFWwindow* window, int button, int action, int m
 	buttonState = action == GLFW_RELEASE ? ZE::BUTTON_UP : ZE::BUTTON_DOWN;
 }
 
+void windowFrameBufferSizeCallback(GLFWwindow* window, int width, int height)
+{
+	ZE::UI::ResizeWindow(width, height);
+}
+
 int main()
 {
 	ZE::UIState state;
@@ -30,6 +35,7 @@ int main()
 
 	glfwSetCursorPosCallback((GLFWwindow*)renderer->getWindowContext(), mousePositionCallback);
 	glfwSetMouseButtonCallback((GLFWwindow*)renderer->getWindowContext(), mouseButtonUpdateCallback);
+	glfwSetFramebufferSizeCallback((GLFWwindow*)renderer->getWindowContext(), windowFrameBufferSizeCallback);
 
 	ZE::UITexture* panelBg = ZE::UI::LoadTexture("../../Resource/Textures/PanelBg.png");
 
@@ -40,7 +46,7 @@ int main()
 
 	ZE::UIRect panelRect;
 	panelRect.m_pos = { 100, 100 };
-	panelRect.m_dimension = { 250, 275 };
+	panelRect.m_dimension = { 250, 300 };
 	panelRect.m_roundness = 10;
 
 	ZE::UIRect panel2Rect = panelRect;
@@ -62,7 +68,11 @@ int main()
 	ZE::UIRect sliderRect;
 	sliderRect.m_dimension.x = panelRect.m_dimension.x - 50;
 	sliderRect.m_dimension.y = 20;
-
+	
+	// Dropdown attributes
+	ZE::UIRect dropDownRect = ZE::UIRect(ZE::UIVector2(0.0f, 0.0f), ZE::UIVector2(150, 32));
+	const char* dropdownText[5] = { "Option 1", "Option 2", "Option 3", "Option 4", "Option 5" };
+	ZE::Int32 dropdownIndex = 1;
 
 	ZE::UIVector2 contentPos;
 
@@ -117,6 +127,11 @@ int main()
  
 		sliderRect.m_pos = contentPos;
 		sliderPercent = ZE::UI::DoSlider(9, sliderRect, sliderPercent);
+
+		contentPos.y += sliderRect.m_dimension.y + 10;
+
+		dropDownRect.m_pos = contentPos;
+		dropdownIndex = ZE::UI::DoDropDown(16, dropDownRect, dropdownIndex, dropdownText, 5);
 
 		{
 			ZE::UI::DoPanel(10, panel2Rect, "Image Scaling...", 10, contentPos, bPanelClosed);

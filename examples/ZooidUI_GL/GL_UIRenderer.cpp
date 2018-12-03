@@ -29,7 +29,7 @@ namespace ZE
 		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 		glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-		glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
+		//glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
 
 		// Setup HW MSAA
 		glfwWindowHint(GLFW_SAMPLES, 4);
@@ -235,8 +235,7 @@ namespace ZE
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glEnable(GL_CULL_FACE);
 		glFrontFace(GL_CCW);
-		//glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ZERO);
-
+		
 		glViewport(0, 0, width, height);
 
 		m_width = width;
@@ -253,7 +252,7 @@ namespace ZE
 		for (int i = 0; i < m_drawList->itemCount(); i++)
 		{
 			UIDrawItem* drawItem = m_drawList->getDrawItem(i);
-			if (drawItem->getPass() > 0)
+			if (drawItem->getLayer() > 0)
 			{
 				secondPass.push_back(drawItem);
 				continue;
@@ -407,6 +406,13 @@ namespace ZE
 	void GL_UIRenderer::destroyTextures()
 	{
 		glDeleteTextures(m_textures.size(), m_textures.data());
+	}
+
+	void GL_UIRenderer::resizeWindow(int width, int height)
+	{
+		m_width = width;
+		m_height = height;
+		glViewport(0, 0, width, height);
 	}
 
 	void GL_UIRenderer::setDrawData(const UIArray<UIVertex>& vertices)

@@ -18,12 +18,18 @@
 
 namespace ZE
 {
+	// Cache Id : Basically just prev active id
+	Int32 cacheId;
+
 	UIState UI::MainUIState;
+
 	UIButtonStyle UI::DefaultButtonStyle;
 	UIButtonStyle UI::DefaultCheckBoxStyle;
 	UIButtonStyle UI::DefaultRadioBtnStyle;
 	UISliderStyle UI::DefaultSliderStyle;
 	UIPanelStyle UI::DefaultPanelStyle;
+	UIDropdownStyle UI::DefaultDropdownStyle;
+
 	UIFont* UI::DefaultFont = nullptr;
 
 	ZE::UIState* UI::GetUIState()
@@ -52,6 +58,9 @@ namespace ZE
 		ZE::UITexture* ButtonBgUp = ZE::UITextureManager::LoadTexture(MERGE_PATH(RESOURCE_FOLDER, "Textures/ButtonBg_Up.png"), MainUIState.renderer);
 		ZE::UITexture* ButtonBgHovered = ZE::UITextureManager::LoadTexture(MERGE_PATH(RESOURCE_FOLDER, "Textures/ButtonBg_Hovered.png"), MainUIState.renderer);
 		ZE::UITexture* ButtonBgDown = ZE::UITextureManager::LoadTexture(MERGE_PATH(RESOURCE_FOLDER, "Textures/ButtonBg_Down.png"), MainUIState.renderer);
+		ZE::UITexture* dropdownBtnUp = ZE::UITextureManager::LoadTexture(MERGE_PATH(RESOURCE_FOLDER, "Textures/DropdownBtn_Up.png"), MainUIState.renderer);
+		ZE::UITexture* dropdownBtnDown = ZE::UITextureManager::LoadTexture(MERGE_PATH(RESOURCE_FOLDER, "Textures/DropdownBtn_Down.png"), MainUIState.renderer);
+		ZE::UITexture* dropdownBtnHover = ZE::UITextureManager::LoadTexture(MERGE_PATH(RESOURCE_FOLDER, "Textures/DropdownBtn_Hover.png"), MainUIState.renderer);
 
 		// Default Font
 		DefaultFont = ZE::UIFont::loadFontFile(MERGE_PATH(RESOURCE_FOLDER, DEFAULT_FONT_PATH), MainUIState.renderer, 16);
@@ -122,6 +131,34 @@ namespace ZE
 		DefaultPanelStyle.panelOpened.texture = panelOpenIcon;
 		DefaultPanelStyle.panelOpened.textureSize = { 15,15 };
 		DefaultPanelStyle.panelOpened.fillColor = { 1.0f, 1.0f , 1.0f ,1.0f };
+
+		// Default Drowpdown Style
+		DefaultDropdownStyle.dropdownButtonStyle.up.texture = dropdownBtnUp;
+		DefaultDropdownStyle.dropdownButtonStyle.up.fillColor = UIVector4(1.0f);
+		DefaultDropdownStyle.dropdownButtonStyle.up.textureOffset = UIVector4(0.12f, 0.12f, 0.075f, 0.4f);
+		DefaultDropdownStyle.dropdownButtonStyle.up.textureScale = SCALE_9SCALE;
+		DefaultDropdownStyle.dropdownButtonStyle.down.texture = dropdownBtnDown;
+		DefaultDropdownStyle.dropdownButtonStyle.down.fillColor = UIVector4(1.0f);
+		DefaultDropdownStyle.dropdownButtonStyle.down.textureOffset = UIVector4(0.12f, 0.12f, 0.075f, 0.4f);
+		DefaultDropdownStyle.dropdownButtonStyle.down.textureScale = SCALE_9SCALE;
+		DefaultDropdownStyle.dropdownButtonStyle.hover.texture = dropdownBtnHover;
+		DefaultDropdownStyle.dropdownButtonStyle.hover.fillColor = UIVector4(1.0f);
+		DefaultDropdownStyle.dropdownButtonStyle.hover.textureOffset = UIVector4(0.12f, 0.12f, 0.075f, 0.4f);
+		DefaultDropdownStyle.dropdownButtonStyle.hover.textureScale = SCALE_9SCALE;
+		DefaultDropdownStyle.dropdownButtonStyle.fontStyle.font = DefaultFont;
+		DefaultDropdownStyle.dropdownButtonStyle.fontStyle.fontScale = 1.0f;
+		DefaultDropdownStyle.selectorStyle.fillColor = UIVector4(0.0f, 0.5f, 1.0f, 1.0f);
+		DefaultDropdownStyle.selectorHoverStyle.fillColor = UIVector4(0.0f, 0.0f, 1.0f, 0.5f);
+		DefaultDropdownStyle.selectorFontStyle.font = DefaultFont;
+		DefaultDropdownStyle.selectorFontStyle.fontScale = 1.0f;
+	}
+
+	void UI::ResizeWindow(Int32 width, Int32 height)
+	{
+		if (MainUIState.renderer)
+		{
+			MainUIState.renderer->resizeWindow(width, height);
+		}
 	}
 
 	void UI::Destroy()
@@ -625,6 +662,118 @@ namespace ZE
 
 	}
 
+	ZE::Int32 UI::DoDropDown(Int32 _id, const UIRect& rect, Int32 selectedIdx, const UIChar** textOptions, Int32 optionCount, const UIDropdownStyle& style /*= DefaultDropdownStyle*/)
+	{
+		bool mouseInside = rect.isContain(UIVector2(MainUIState.mouseX, MainUIState.mouseY));
+		bool bPressed = false;
+		if (mouseInside && MainUIState.mouseDown == EButtonState::BUTTON_DOWN)
+		{
+			MainUIState.activeItem.id = _id;
+		}
+		else if (mouseInside)
+		{
+			MainUIState.hotItem.id = _id;
+			if (MainUIState.activeItem.id == _id) 
+			{ 
+				MainUIState.activeItem.id = -1; bPressed = true; 
+				if (cacheId != _id)
+				{
+					cacheId = _id;
+				}
+				else
+				{
+					cacheId = -1;
+				}
+			}
+		}
+		else
+		{
+			if (MainUIState.hotItem.id == _id) { MainUIState.hotItem.id = -1; }
+			if (MainUIState.activeItem.id == _id) 
+			{ 
+				MainUIState.activeItem.id = -1;
+			}
+			else if (MainUIState.activeItem.id != -1 && cacheId == _id)
+			{
+				cacheId = -1;
+			}
+		}
+
+		UIStyle uiStyle;
+		if (MainUIState.activeItem.id == _id)
+		{
+			uiStyle = style.dropdownButtonStyle.down;
+		}
+		else if(MainUIState.hotItem.id == _id)
+		{
+			uiStyle = style.dropdownButtonStyle.hover;
+		}
+		else
+		{
+			uiStyle = style.dropdownButtonStyle.up;
+		}
+
+		UIRect textRect = rect;
+		if (uiStyle.texture)
+		{
+			MainUIState.drawer->DrawTexture(rect, uiStyle.texture, uiStyle.fillColor, uiStyle.textureScale, uiStyle.textureOffset);
+			textRect.m_pos.x += uiStyle.textureOffset.z * rect.m_dimension.x;
+			textRect.m_pos.y += uiStyle.textureOffset.x * rect.m_dimension.y;
+			textRect.m_dimension.x -= (uiStyle.textureOffset.z + uiStyle.textureOffset.w) * rect.m_dimension.x;
+			textRect.m_dimension.y -= (uiStyle.textureOffset.x + uiStyle.textureOffset.y) * rect.m_dimension.y;
+		}
+		else
+		{
+			MainUIState.drawer->DrawRect(rect, uiStyle.fillColor);
+		}
+
+		DrawTextInRect(-99, textRect, textOptions[selectedIdx], UIVector4(1.0f), TEXT_LEFT, TEXT_V_CENTER, style.dropdownButtonStyle.fontStyle.fontScale, style.dropdownButtonStyle.fontStyle.font);
+
+		if (cacheId == _id)
+		{
+			MainUIState.drawer->SetLayer(1); // Draw on top of everything
+
+			// Open selector
+			UIRect selectionRect = rect;
+			selectionRect.m_pos.y += rect.m_dimension.y;
+			selectionRect.m_dimension.y = rect.m_dimension.y * optionCount;
+			if (style.selectorStyle.texture)
+			{
+				MainUIState.drawer->DrawTexture(selectionRect, style.selectorStyle.texture, style.selectorStyle.fillColor, style.selectorStyle.textureScale, style.selectorStyle.textureOffset);
+			}
+			else
+			{
+				MainUIState.drawer->DrawRect(selectionRect, style.selectorStyle.fillColor);
+			}
+
+			// Drawing Text
+			UIRect selRect = rect;
+			UIRect selTextRect = rect;
+			selTextRect.m_pos.y += rect.m_dimension.y;
+			selTextRect.m_pos.x = textRect.m_pos.x;
+			UIVector2 mousePos(MainUIState.mouseX, MainUIState.mouseY);
+			for (int i = 0; i < optionCount; i++)
+			{
+				if (selTextRect.isContain(mousePos))
+				{
+					selRect.m_pos.y = selTextRect.m_pos.y;
+					MainUIState.drawer->DrawRect(selRect, style.selectorHoverStyle.fillColor);
+					if (MainUIState.mouseDown == EButtonState::BUTTON_DOWN)
+					{
+						cacheId = -1;
+						selectedIdx = i;
+					}
+				}
+
+				DrawTextInRect(-99, selTextRect, textOptions[i], UIVector4(1.0f), TEXT_LEFT, TEXT_V_CENTER, DefaultDropdownStyle.selectorFontStyle.fontScale, DefaultDropdownStyle.selectorFontStyle.font);
+				selTextRect.m_pos.y += rect.m_dimension.y;
+			}
+
+			MainUIState.drawer->SetLayer(0);
+		}
+		return selectedIdx;
+	}
+
 	void UI::DrawTextInPos(Int32 _id, UIVector2& pos, const UIChar* text, const UIVector4& fillColor, UIFont* font, Float32 scale)
 	{
 		MainUIState.drawer->DrawText(pos, fillColor, font, text, scale);
@@ -723,6 +872,9 @@ namespace ZE
 	#endif
 #endif
 
+		drawItem->m_layer = m_currentLayer;
+		Float32 depth = m_currentLayer * 0.5f + m_currentDepth;
+
 		UIVector2 positions[4] = { rect.m_pos, 
 								{ rect.m_pos.x + rect.m_dimension.x, rect.m_pos.y }, 
 								{ rect.m_pos.x, rect.m_pos.y + rect.m_dimension.y }, 
@@ -732,15 +884,15 @@ namespace ZE
 		if (textureScale == ZE::SCALE_IMAGE)
 		{
 #if defined(ZUI_USE_RECT_INSTANCING)
-			drawItem->m_instances.push_back(UIInstance{ rect.m_pos, m_currentDepth, rect.m_dimension, 0.0f, fillColor, UIVector4{ 0.0f, 0.0f, 1.0f, 1.0f } });
+			drawItem->m_instances.push_back(UIInstance{ rect.m_pos, depth, rect.m_dimension, 0.0f, fillColor, UIVector4{ 0.0f, 0.0f, 1.0f, 1.0f } });
 #else
-			drawItem->m_vertices.push_back(UIVertex{ positions[0], m_currentDepth, texCoords[0], fillColor });
-			drawItem->m_vertices.push_back(UIVertex{ positions[1], m_currentDepth, texCoords[1], fillColor });
-			drawItem->m_vertices.push_back(UIVertex{ positions[3], m_currentDepth, texCoords[3], fillColor });
+			drawItem->m_vertices.push_back(UIVertex{ positions[0], depth, texCoords[0], fillColor });
+			drawItem->m_vertices.push_back(UIVertex{ positions[1], depth, texCoords[1], fillColor });
+			drawItem->m_vertices.push_back(UIVertex{ positions[3], depth, texCoords[3], fillColor });
 
-			drawItem->m_vertices.push_back(UIVertex{ positions[0], m_currentDepth, texCoords[0], fillColor });
-			drawItem->m_vertices.push_back(UIVertex{ positions[3], m_currentDepth, texCoords[3], fillColor });
-			drawItem->m_vertices.push_back(UIVertex{ positions[2], m_currentDepth, texCoords[2], fillColor });
+			drawItem->m_vertices.push_back(UIVertex{ positions[0], depth, texCoords[0], fillColor });
+			drawItem->m_vertices.push_back(UIVertex{ positions[3], depth, texCoords[3], fillColor });
+			drawItem->m_vertices.push_back(UIVertex{ positions[2], depth, texCoords[2], fillColor });
 #endif
 		}
 		else if (textureScale == SCALE_9SCALE || textureScale == SCALE_BORDER)
@@ -791,118 +943,118 @@ namespace ZE
 			UIVector2 edgeRectDimTop{ rect.m_dimension.x - smallRectDim1.x - smallRectDim2.x, smallRectDim1.y };
 			UIVector2 edgeRectDimBottom{ rect.m_dimension.x - smallRectDim1.x - smallRectDim2.x, smallRectDim3.y };
 			UIVector2 edgeRectDimLeft{ smallRectDim1.x, rect.m_dimension.y - smallRectDim1.y - smallRectDim3.y };
-			UIVector2 edgeRectDimRight{ smallRectDim1.x, rect.m_dimension.y - smallRectDim2.y - smallRectDim4.y };
+			UIVector2 edgeRectDimRight{ smallRectDim2.x, rect.m_dimension.y - smallRectDim2.y - smallRectDim4.y };
 
 			// Top Left Corner
-			drawItem->m_instances.push_back(UIInstance{ rect.m_pos, m_currentDepth, smallRectDim1, 0.0f, fillColor, UIVector4{ 0.0f, 0.0f, left, top } });
+			drawItem->m_instances.push_back(UIInstance{ rect.m_pos, depth, smallRectDim1, 0.0f, fillColor, UIVector4{ 0.0f, 0.0f, left, top } });
 
 			// Bottom Left Corner
-			drawItem->m_instances.push_back(UIInstance{ outerPositions[5], m_currentDepth, smallRectDim3, 0.0f, fillColor, UIVector4{ outerTexCoords[5].x, outerTexCoords[5].y, left, bottom } });
+			drawItem->m_instances.push_back(UIInstance{ outerPositions[5], depth, smallRectDim3, 0.0f, fillColor, UIVector4{ outerTexCoords[5].x, outerTexCoords[5].y, left, bottom } });
 
 			// Right Top Corner
-			drawItem->m_instances.push_back(UIInstance{ outerPositions[2], m_currentDepth, smallRectDim2, 0.0f, fillColor, UIVector4{ outerTexCoords[2].x, outerTexCoords[2].y, right, top } });
+			drawItem->m_instances.push_back(UIInstance{ outerPositions[2], depth, smallRectDim2, 0.0f, fillColor, UIVector4{ outerTexCoords[2].x, outerTexCoords[2].y, right, top } });
 
 			// Right Bottom Corner
-			drawItem->m_instances.push_back(UIInstance{ innerPositions[3], m_currentDepth, smallRectDim4, 0.0f, fillColor, UIVector4{ innerTexCoords[3].x, innerTexCoords[3].y, right, bottom } });
+			drawItem->m_instances.push_back(UIInstance{ innerPositions[3], depth, smallRectDim4, 0.0f, fillColor, UIVector4{ innerTexCoords[3].x, innerTexCoords[3].y, right, bottom } });
 			
 			// Top Edge
-			drawItem->m_instances.push_back(UIInstance{ outerPositions[0], m_currentDepth, edgeRectDimTop, 0.0f, fillColor, UIVector4{ outerTexCoords[0].x, outerTexCoords[0].y, 1.0f - right - left, top } });
+			drawItem->m_instances.push_back(UIInstance{ outerPositions[0], depth, edgeRectDimTop, 0.0f, fillColor, UIVector4{ outerTexCoords[0].x, outerTexCoords[0].y, 1.0f - right - left, top } });
 			
 			// Bottom Edge
-			drawItem->m_instances.push_back(UIInstance{ innerPositions[2], m_currentDepth, edgeRectDimBottom, 0.0f, fillColor, UIVector4{ innerTexCoords[2].x, innerTexCoords[2].y, 1.0f - right - left, bottom } });
+			drawItem->m_instances.push_back(UIInstance{ innerPositions[2], depth, edgeRectDimBottom, 0.0f, fillColor, UIVector4{ innerTexCoords[2].x, innerTexCoords[2].y, 1.0f - right - left, bottom } });
 			
 			// Left Edge
-			drawItem->m_instances.push_back(UIInstance{ outerPositions[1], m_currentDepth, edgeRectDimLeft, 0.0f, fillColor, UIVector4{ outerTexCoords[1].x, outerTexCoords[1].y, left, 1.0f - top - bottom } });
+			drawItem->m_instances.push_back(UIInstance{ outerPositions[1], depth, edgeRectDimLeft, 0.0f, fillColor, UIVector4{ outerTexCoords[1].x, outerTexCoords[1].y, left, 1.0f - top - bottom } });
 
 			// Right Edge
-			drawItem->m_instances.push_back(UIInstance{ innerPositions[1], m_currentDepth, edgeRectDimRight, 0.0f, fillColor, UIVector4{ innerTexCoords[1].x, innerTexCoords[1].y, right, 1.0f - top - bottom } });
+			drawItem->m_instances.push_back(UIInstance{ innerPositions[1], depth, edgeRectDimRight, 0.0f, fillColor, UIVector4{ innerTexCoords[1].x, innerTexCoords[1].y, right, 1.0f - top - bottom } });
 
 #else
 			// Top-Left Corner
-			drawItem->m_vertices.push_back(UIVertex{ positions[0], m_currentDepth, texCoords[0], fillColor });
-			drawItem->m_vertices.push_back(UIVertex{ outerPositions[0], m_currentDepth, outerTexCoords[0], fillColor });
-			drawItem->m_vertices.push_back(UIVertex{ innerPositions[0], m_currentDepth, innerTexCoords[0], fillColor });
+			drawItem->m_vertices.push_back(UIVertex{ positions[0], depth, texCoords[0], fillColor });
+			drawItem->m_vertices.push_back(UIVertex{ outerPositions[0], depth, outerTexCoords[0], fillColor });
+			drawItem->m_vertices.push_back(UIVertex{ innerPositions[0], depth, innerTexCoords[0], fillColor });
 
-			drawItem->m_vertices.push_back(UIVertex{ positions[0], m_currentDepth, texCoords[0], fillColor });
-			drawItem->m_vertices.push_back(UIVertex{ innerPositions[0], m_currentDepth, innerTexCoords[0], fillColor });
-			drawItem->m_vertices.push_back(UIVertex{ outerPositions[1], m_currentDepth, outerTexCoords[1], fillColor });
+			drawItem->m_vertices.push_back(UIVertex{ positions[0], depth, texCoords[0], fillColor });
+			drawItem->m_vertices.push_back(UIVertex{ innerPositions[0], depth, innerTexCoords[0], fillColor });
+			drawItem->m_vertices.push_back(UIVertex{ outerPositions[1], depth, outerTexCoords[1], fillColor });
 
 			// Top-Right Corner
-			drawItem->m_vertices.push_back(UIVertex{ positions[1], m_currentDepth, texCoords[1], fillColor });
-			drawItem->m_vertices.push_back(UIVertex{ outerPositions[3], m_currentDepth, outerTexCoords[3], fillColor });
-			drawItem->m_vertices.push_back(UIVertex{ innerPositions[1], m_currentDepth, innerTexCoords[1], fillColor });
+			drawItem->m_vertices.push_back(UIVertex{ positions[1], depth, texCoords[1], fillColor });
+			drawItem->m_vertices.push_back(UIVertex{ outerPositions[3], depth, outerTexCoords[3], fillColor });
+			drawItem->m_vertices.push_back(UIVertex{ innerPositions[1], depth, innerTexCoords[1], fillColor });
 
-			drawItem->m_vertices.push_back(UIVertex{ positions[1], m_currentDepth, texCoords[1], fillColor });
-			drawItem->m_vertices.push_back(UIVertex{ innerPositions[1], m_currentDepth, innerTexCoords[1], fillColor });
-			drawItem->m_vertices.push_back(UIVertex{ outerPositions[2], m_currentDepth, outerTexCoords[2], fillColor });
+			drawItem->m_vertices.push_back(UIVertex{ positions[1], depth, texCoords[1], fillColor });
+			drawItem->m_vertices.push_back(UIVertex{ innerPositions[1], depth, innerTexCoords[1], fillColor });
+			drawItem->m_vertices.push_back(UIVertex{ outerPositions[2], depth, outerTexCoords[2], fillColor });
 
 			// Bottom-Left Corner
-			drawItem->m_vertices.push_back(UIVertex{ positions[2], m_currentDepth, texCoords[2], fillColor });
-			drawItem->m_vertices.push_back(UIVertex{ outerPositions[5], m_currentDepth, outerTexCoords[5], fillColor });
-			drawItem->m_vertices.push_back(UIVertex{ innerPositions[2], m_currentDepth, innerTexCoords[2], fillColor });
+			drawItem->m_vertices.push_back(UIVertex{ positions[2], depth, texCoords[2], fillColor });
+			drawItem->m_vertices.push_back(UIVertex{ outerPositions[5], depth, outerTexCoords[5], fillColor });
+			drawItem->m_vertices.push_back(UIVertex{ innerPositions[2], depth, innerTexCoords[2], fillColor });
 
-			drawItem->m_vertices.push_back(UIVertex{ positions[2], m_currentDepth, texCoords[2], fillColor });
-			drawItem->m_vertices.push_back(UIVertex{ innerPositions[2], m_currentDepth, innerTexCoords[2], fillColor });
-			drawItem->m_vertices.push_back(UIVertex{ outerPositions[4], m_currentDepth, outerTexCoords[4], fillColor });
+			drawItem->m_vertices.push_back(UIVertex{ positions[2], depth, texCoords[2], fillColor });
+			drawItem->m_vertices.push_back(UIVertex{ innerPositions[2], depth, innerTexCoords[2], fillColor });
+			drawItem->m_vertices.push_back(UIVertex{ outerPositions[4], depth, outerTexCoords[4], fillColor });
 
 			// Bottom-Right Corner
-			drawItem->m_vertices.push_back(UIVertex{ positions[3], m_currentDepth, texCoords[3], fillColor });
-			drawItem->m_vertices.push_back(UIVertex{ outerPositions[7], m_currentDepth, outerTexCoords[7], fillColor });
-			drawItem->m_vertices.push_back(UIVertex{ innerPositions[3], m_currentDepth, innerTexCoords[3], fillColor });
+			drawItem->m_vertices.push_back(UIVertex{ positions[3], depth, texCoords[3], fillColor });
+			drawItem->m_vertices.push_back(UIVertex{ outerPositions[7], depth, outerTexCoords[7], fillColor });
+			drawItem->m_vertices.push_back(UIVertex{ innerPositions[3], depth, innerTexCoords[3], fillColor });
 
-			drawItem->m_vertices.push_back(UIVertex{ positions[3], m_currentDepth, texCoords[3], fillColor });
-			drawItem->m_vertices.push_back(UIVertex{ innerPositions[3], m_currentDepth, innerTexCoords[3], fillColor });
-			drawItem->m_vertices.push_back(UIVertex{ outerPositions[6], m_currentDepth, outerTexCoords[6], fillColor });
+			drawItem->m_vertices.push_back(UIVertex{ positions[3], depth, texCoords[3], fillColor });
+			drawItem->m_vertices.push_back(UIVertex{ innerPositions[3], depth, innerTexCoords[3], fillColor });
+			drawItem->m_vertices.push_back(UIVertex{ outerPositions[6], depth, outerTexCoords[6], fillColor });
 
 			// Top
-			drawItem->m_vertices.push_back(UIVertex{ outerPositions[0], m_currentDepth, outerTexCoords[0], fillColor });
-			drawItem->m_vertices.push_back(UIVertex{ outerPositions[2], m_currentDepth, outerTexCoords[2], fillColor });
-			drawItem->m_vertices.push_back(UIVertex{ innerPositions[1], m_currentDepth, innerTexCoords[1], fillColor });
+			drawItem->m_vertices.push_back(UIVertex{ outerPositions[0], depth, outerTexCoords[0], fillColor });
+			drawItem->m_vertices.push_back(UIVertex{ outerPositions[2], depth, outerTexCoords[2], fillColor });
+			drawItem->m_vertices.push_back(UIVertex{ innerPositions[1], depth, innerTexCoords[1], fillColor });
 
-			drawItem->m_vertices.push_back(UIVertex{ outerPositions[0], m_currentDepth, outerTexCoords[0], fillColor });
-			drawItem->m_vertices.push_back(UIVertex{ innerPositions[1], m_currentDepth, innerTexCoords[1], fillColor });
-			drawItem->m_vertices.push_back(UIVertex{ innerPositions[0], m_currentDepth, innerTexCoords[0], fillColor });
+			drawItem->m_vertices.push_back(UIVertex{ outerPositions[0], depth, outerTexCoords[0], fillColor });
+			drawItem->m_vertices.push_back(UIVertex{ innerPositions[1], depth, innerTexCoords[1], fillColor });
+			drawItem->m_vertices.push_back(UIVertex{ innerPositions[0], depth, innerTexCoords[0], fillColor });
 
 			// Bottom
-			drawItem->m_vertices.push_back(UIVertex{ outerPositions[4], m_currentDepth, outerTexCoords[4], fillColor });
-			drawItem->m_vertices.push_back(UIVertex{ innerPositions[3], m_currentDepth, innerTexCoords[3], fillColor });
-			drawItem->m_vertices.push_back(UIVertex{ innerPositions[2], m_currentDepth, innerTexCoords[2], fillColor });
+			drawItem->m_vertices.push_back(UIVertex{ outerPositions[4], depth, outerTexCoords[4], fillColor });
+			drawItem->m_vertices.push_back(UIVertex{ innerPositions[3], depth, innerTexCoords[3], fillColor });
+			drawItem->m_vertices.push_back(UIVertex{ innerPositions[2], depth, innerTexCoords[2], fillColor });
 
-			drawItem->m_vertices.push_back(UIVertex{ outerPositions[6], m_currentDepth, outerTexCoords[6], fillColor });
-			drawItem->m_vertices.push_back(UIVertex{ outerPositions[4], m_currentDepth, outerTexCoords[4], fillColor });
-			drawItem->m_vertices.push_back(UIVertex{ innerPositions[3], m_currentDepth, innerTexCoords[3], fillColor });
+			drawItem->m_vertices.push_back(UIVertex{ outerPositions[6], depth, outerTexCoords[6], fillColor });
+			drawItem->m_vertices.push_back(UIVertex{ outerPositions[4], depth, outerTexCoords[4], fillColor });
+			drawItem->m_vertices.push_back(UIVertex{ innerPositions[3], depth, innerTexCoords[3], fillColor });
 
 			// Left
-			drawItem->m_vertices.push_back(UIVertex{ outerPositions[1], m_currentDepth, outerTexCoords[1], fillColor });
-			drawItem->m_vertices.push_back(UIVertex{ innerPositions[2], m_currentDepth, innerTexCoords[2], fillColor });
-			drawItem->m_vertices.push_back(UIVertex{ outerPositions[5], m_currentDepth, outerTexCoords[5], fillColor });
+			drawItem->m_vertices.push_back(UIVertex{ outerPositions[1], depth, outerTexCoords[1], fillColor });
+			drawItem->m_vertices.push_back(UIVertex{ innerPositions[2], depth, innerTexCoords[2], fillColor });
+			drawItem->m_vertices.push_back(UIVertex{ outerPositions[5], depth, outerTexCoords[5], fillColor });
 
-			drawItem->m_vertices.push_back(UIVertex{ outerPositions[1], m_currentDepth, outerTexCoords[1], fillColor });
-			drawItem->m_vertices.push_back(UIVertex{ innerPositions[0], m_currentDepth, innerTexCoords[0], fillColor });
-			drawItem->m_vertices.push_back(UIVertex{ innerPositions[2], m_currentDepth, innerTexCoords[2], fillColor });
+			drawItem->m_vertices.push_back(UIVertex{ outerPositions[1], depth, outerTexCoords[1], fillColor });
+			drawItem->m_vertices.push_back(UIVertex{ innerPositions[0], depth, innerTexCoords[0], fillColor });
+			drawItem->m_vertices.push_back(UIVertex{ innerPositions[2], depth, innerTexCoords[2], fillColor });
 
 			// Right
-			drawItem->m_vertices.push_back(UIVertex{ outerPositions[3], m_currentDepth, outerTexCoords[3], fillColor });
-			drawItem->m_vertices.push_back(UIVertex{ outerPositions[7], m_currentDepth, outerTexCoords[7], fillColor });
-			drawItem->m_vertices.push_back(UIVertex{ innerPositions[1], m_currentDepth, innerTexCoords[1], fillColor });
+			drawItem->m_vertices.push_back(UIVertex{ outerPositions[3], depth, outerTexCoords[3], fillColor });
+			drawItem->m_vertices.push_back(UIVertex{ outerPositions[7], depth, outerTexCoords[7], fillColor });
+			drawItem->m_vertices.push_back(UIVertex{ innerPositions[1], depth, innerTexCoords[1], fillColor });
 
-			drawItem->m_vertices.push_back(UIVertex{ outerPositions[7], m_currentDepth, outerTexCoords[7], fillColor });
-			drawItem->m_vertices.push_back(UIVertex{ innerPositions[3], m_currentDepth, innerTexCoords[3], fillColor });
-			drawItem->m_vertices.push_back(UIVertex{ innerPositions[1], m_currentDepth, innerTexCoords[1], fillColor });
+			drawItem->m_vertices.push_back(UIVertex{ outerPositions[7], depth, outerTexCoords[7], fillColor });
+			drawItem->m_vertices.push_back(UIVertex{ innerPositions[3], depth, innerTexCoords[3], fillColor });
+			drawItem->m_vertices.push_back(UIVertex{ innerPositions[1], depth, innerTexCoords[1], fillColor });
 #endif
 			if (textureScale == SCALE_9SCALE)
 			{
 #if defined(ZUI_USE_RECT_INSTANCING)
-				drawItem->m_instances.push_back(UIInstance{ innerPositions[0], m_currentDepth, { rect.m_dimension.x - smallRectDim1.x - smallRectDim2.x, rect.m_dimension.y - smallRectDim1.y - smallRectDim3.y }, 0.0f, fillColor, UIVector4{ innerTexCoords[0].x, innerTexCoords[0].y, 1.0f - left - right, 1.0f - top - bottom } });
+				drawItem->m_instances.push_back(UIInstance{ innerPositions[0], depth, { rect.m_dimension.x - smallRectDim1.x - smallRectDim2.x, rect.m_dimension.y - smallRectDim1.y - smallRectDim3.y }, 0.0f, fillColor, UIVector4{ innerTexCoords[0].x, innerTexCoords[0].y, 1.0f - left - right, 1.0f - top - bottom } });
 #else
 				// Center
-				drawItem->m_vertices.push_back(UIVertex{ innerPositions[0], m_currentDepth, innerTexCoords[0], fillColor });
-				drawItem->m_vertices.push_back(UIVertex{ innerPositions[1], m_currentDepth, innerTexCoords[1], fillColor });
-				drawItem->m_vertices.push_back(UIVertex{ innerPositions[3], m_currentDepth, innerTexCoords[3], fillColor });
+				drawItem->m_vertices.push_back(UIVertex{ innerPositions[0], depth, innerTexCoords[0], fillColor });
+				drawItem->m_vertices.push_back(UIVertex{ innerPositions[1], depth, innerTexCoords[1], fillColor });
+				drawItem->m_vertices.push_back(UIVertex{ innerPositions[3], depth, innerTexCoords[3], fillColor });
 
-				drawItem->m_vertices.push_back(UIVertex{ innerPositions[0], m_currentDepth, innerTexCoords[0], fillColor });
-				drawItem->m_vertices.push_back(UIVertex{ innerPositions[3], m_currentDepth, innerTexCoords[3], fillColor });
-				drawItem->m_vertices.push_back(UIVertex{ innerPositions[2], m_currentDepth, innerTexCoords[2], fillColor });
+				drawItem->m_vertices.push_back(UIVertex{ innerPositions[0], depth, innerTexCoords[0], fillColor });
+				drawItem->m_vertices.push_back(UIVertex{ innerPositions[3], depth, innerTexCoords[3], fillColor });
+				drawItem->m_vertices.push_back(UIVertex{ innerPositions[2], depth, innerTexCoords[2], fillColor });
 #endif
 			}
 		}
@@ -919,8 +1071,11 @@ namespace ZE
 		UIDrawItem* drawItem = m_currentDrawList->getNextDrawItem();
 #endif
 
+		drawItem->m_layer = m_currentLayer;
+		Float32 depth = m_currentLayer * 0.5f + m_currentDepth;
+
 #if defined(ZUI_USE_RECT_INSTANCING)
-		drawItem->m_instances.push_back(UIInstance{ rect.m_pos, m_currentDepth, rect.m_dimension, rect.m_roundness, fillColor });
+		drawItem->m_instances.push_back(UIInstance{ rect.m_pos, depth, rect.m_dimension, rect.m_roundness, fillColor });
 		drawItem->m_bUsingRectInstance = true;
 #else
 		UIVector2 positions[4] = { rect.m_pos,
@@ -929,13 +1084,13 @@ namespace ZE
 			rect.m_pos + rect.m_dimension };
 		UIVector2 texCoords[4] = { { 0.0f, 0.0f },{ 1.0f, 0.0f },{ 0.0f, 1.0f },{ 1.0f, 1.0f } };
 
-		drawItem->m_vertices.push_back(UIVertex{ positions[0], m_currentDepth, texCoords[0], fillColor });
-		drawItem->m_vertices.push_back(UIVertex{ positions[1], m_currentDepth, texCoords[1], fillColor });
-		drawItem->m_vertices.push_back(UIVertex{ positions[3], m_currentDepth, texCoords[3], fillColor });
+		drawItem->m_vertices.push_back(UIVertex{ positions[0], depth, texCoords[0], fillColor });
+		drawItem->m_vertices.push_back(UIVertex{ positions[1], depth, texCoords[1], fillColor });
+		drawItem->m_vertices.push_back(UIVertex{ positions[3], depth, texCoords[3], fillColor });
 
-		drawItem->m_vertices.push_back(UIVertex{ positions[0], m_currentDepth, texCoords[0], fillColor });
-		drawItem->m_vertices.push_back(UIVertex{ positions[3], m_currentDepth, texCoords[3], fillColor });
-		drawItem->m_vertices.push_back(UIVertex{ positions[2], m_currentDepth, texCoords[2], fillColor });
+		drawItem->m_vertices.push_back(UIVertex{ positions[0], depth, texCoords[0], fillColor });
+		drawItem->m_vertices.push_back(UIVertex{ positions[3], depth, texCoords[3], fillColor });
+		drawItem->m_vertices.push_back(UIVertex{ positions[2], depth, texCoords[2], fillColor });
 		
 		drawItem->m_roundness = rect.m_roundness;
 		drawItem->m_shapeDimension = rect.m_dimension;
@@ -958,20 +1113,23 @@ namespace ZE
 #else
 		UIDrawItem* drawItem = m_currentDrawList->getTextureDrawItem(font->getTextureHandle());
 #endif
+
+		drawItem->m_layer = m_currentLayer;
+
 		if (bWordWrap)
 		{
 #if defined(ZUI_USE_FONT_INSTANCING)
-			font->generateWrapTextInstanceBuffer(text, drawItem->m_instances, pos + UIVector2{ 0, 1.0f * font->calculateTextHeight(scale) }, scale, m_currentDepth, fillColor, maxWidth, wrapTextAlign);
+			font->generateWrapTextInstanceBuffer(text, drawItem->m_instances, pos + UIVector2{ 0, 1.0f * font->calculateTextHeight(scale) }, scale, m_currentLayer * 0.5f + m_currentDepth, fillColor, maxWidth, wrapTextAlign);
 #else
-			font->generateWrapTextVertexBuffer(text, drawItem->m_vertices, pos + UIVector2{ 0, 1.0f * font->calculateTextHeight(scale) }, scale, m_currentDepth, fillColor, maxWidth, wrapTextAlign);
+			font->generateWrapTextVertexBuffer(text, drawItem->m_vertices, pos + UIVector2{ 0, 1.0f * font->calculateTextHeight(scale) }, scale, m_currentLayer * 0.5f + m_currentDepth, fillColor, maxWidth, wrapTextAlign);
 #endif
 		}
 		else
 		{
 #if defined(ZUI_USE_FONT_INSTANCING)
-			font->generateInstanceBuffer(text, drawItem->m_instances, pos + UIVector2{ 0, 1.0f * font->calculateTextHeight(scale) }, scale, m_currentDepth, fillColor);
+			font->generateInstanceBuffer(text, drawItem->m_instances, pos + UIVector2{ 0, 1.0f * font->calculateTextHeight(scale) }, scale, m_currentLayer * 0.5f + m_currentDepth, fillColor);
 #else
-			font->generateVertexBuffer(text, drawItem->m_vertices, pos + UIVector2{ 0, 1.0f * font->calculateTextHeight(scale) }, scale, m_currentDepth, fillColor);
+			font->generateVertexBuffer(text, drawItem->m_vertices, pos + UIVector2{ 0, 1.0f * font->calculateTextHeight(scale) }, scale, m_currentLayer * 0.5f + m_currentDepth, fillColor);
 #endif
 		}
 
@@ -980,7 +1138,7 @@ namespace ZE
 #endif
 		drawItem->m_bFont = true;
 #if defined(ZUI_GROUP_PER_TEXTURE)
-		drawItem->m_pass = 1;
+		drawItem->m_layer = 1;
 #endif
 
 		m_currentDepth += m_step;
@@ -1089,7 +1247,7 @@ namespace ZE
 
 		m_bFont = false;
 		m_bUsingRectInstance = false;
-		m_pass = 0;
+		m_layer = 0;
 	}
 
 	bool UIRect::isContain(const UIVector2& pos) const
