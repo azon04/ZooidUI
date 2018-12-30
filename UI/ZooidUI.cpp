@@ -10,6 +10,7 @@
 #include "External/Image/stb_image.h"
 
 #define UIMEM_CPY(Dst, Src, _Size) memcpy(Dst, Src, _Size)
+#define UIMEM_MOVE(Dst, Src, _Size) memmove(Dst, Src, _Size)
 #define UIMEM_ZERO(Dst, _Size) memset(Dst, 0, _Size)
 #define UIMAX(a, b) (a > b ? (a) : (b))
 #define UIMIN(a, b) (a < b ? (a) : (b))
@@ -29,12 +30,24 @@ namespace ZE
 	UISliderStyle UI::DefaultSliderStyle;
 	UIPanelStyle UI::DefaultPanelStyle;
 	UIDropdownStyle UI::DefaultDropdownStyle;
+	UITextInputStyle UI::DefaultTextInputStyle;
 
 	UIFont* UI::DefaultFont = nullptr;
 
 	ZE::UIState* UI::GetUIState()
 	{
 		return &MainUIState;
+	}
+
+	// Helper function: Get Length of the UIChar buffer
+	Int32 TextLength(const UIChar* text)
+	{
+		Int32 len = 0;
+		while (text[len] != 0)
+		{
+			len++;
+		}
+		return len;
 	}
 
 	void UI::Init(Int32 width, Int32 height)
@@ -61,7 +74,9 @@ namespace ZE
 		ZE::UITexture* dropdownBtnUp = ZE::UITextureManager::LoadTexture(MERGE_PATH(RESOURCE_FOLDER, "Textures/DropdownBtn_Up.png"), MainUIState.renderer);
 		ZE::UITexture* dropdownBtnDown = ZE::UITextureManager::LoadTexture(MERGE_PATH(RESOURCE_FOLDER, "Textures/DropdownBtn_Down.png"), MainUIState.renderer);
 		ZE::UITexture* dropdownBtnHover = ZE::UITextureManager::LoadTexture(MERGE_PATH(RESOURCE_FOLDER, "Textures/DropdownBtn_Hover.png"), MainUIState.renderer);
-
+		ZE::UITexture* textInputBg = ZE::UITextureManager::LoadTexture(MERGE_PATH(RESOURCE_FOLDER, "Textures/InputFieldBg.png"), MainUIState.renderer);
+		ZE::UITexture* textInputBgActive = ZE::UITextureManager::LoadTexture(MERGE_PATH(RESOURCE_FOLDER, "Textures/InputFieldBgActive.png"), MainUIState.renderer);
+		
 		// Default Font
 		DefaultFont = ZE::UIFont::loadFontFile(MERGE_PATH(RESOURCE_FOLDER, DEFAULT_FONT_PATH), MainUIState.renderer, 16);
 
@@ -151,6 +166,18 @@ namespace ZE
 		DefaultDropdownStyle.selectorHoverStyle.fillColor = UIVector4(0.0f, 0.0f, 1.0f, 0.5f);
 		DefaultDropdownStyle.selectorFontStyle.font = DefaultFont;
 		DefaultDropdownStyle.selectorFontStyle.fontScale = 1.0f;
+
+		// Default Text Input Style
+		DefaultTextInputStyle.defaultStyle.fillColor = UIVector4(1.0f);
+		DefaultTextInputStyle.defaultStyle.texture = textInputBg;
+		DefaultTextInputStyle.defaultStyle.textureScale = SCALE_9SCALE;
+		DefaultTextInputStyle.defaultStyle.textureOffset = UIVector4(0.20f);
+		DefaultTextInputStyle.activeStyle.fillColor = UIVector4(1.0f);
+		DefaultTextInputStyle.activeStyle.texture = textInputBgActive;
+		DefaultTextInputStyle.activeStyle.textureScale = SCALE_9SCALE;
+		DefaultTextInputStyle.activeStyle.textureOffset = UIVector4(0.20f);
+		DefaultTextInputStyle.fontStyle.font = DefaultFont;
+		DefaultTextInputStyle.fontStyle.fontScale = 1.0f;
 	}
 
 	void UI::ResizeWindow(Int32 width, Int32 height)
@@ -196,7 +223,86 @@ namespace ZE
 		MainUIState.mouseY = mouseY;
 		MainUIState.mouseDown = mouseDown;
 	}
-	
+
+	void UI::RecordKeyboardButton(UIChar keyChar)
+	{
+		// Handle Keys
+		// Backspace key
+		if (keyChar == ZOOID_KEY_BACKSPACE)
+		{
+			if (MainUIState.textInputCurrentPos > 0)
+			{
+				Int32 len = TextLength(MainUIState.textInputBuffer);
+				UIMEM_MOVE(MainUIState.textInputBuffer + MainUIState.textInputCurrentPos - 1,
+					MainUIState.textInputBuffer + MainUIState.textInputCurrentPos,
+					len - MainUIState.textInputCurrentPos + 1);
+
+				MainUIState.textInputCurrentPos--;
+			}
+			return;
+		}
+		else if (keyChar == ZOOID_KEY_ENTER)
+		{
+			return;
+		}
+		else if (keyChar == ZOOID_KEY_DELETE)
+		{
+			Int32 len = TextLength(MainUIState.textInputBuffer);
+			if (MainUIState.textInputCurrentPos < len)
+			{
+				Int32 len = TextLength(MainUIState.textInputBuffer);
+				UIMEM_MOVE(MainUIState.textInputBuffer + MainUIState.textInputCurrentPos,
+					MainUIState.textInputBuffer + MainUIState.textInputCurrentPos + 1,
+					len - MainUIState.textInputCurrentPos + 1);
+			}
+			return;
+		}
+		else if (keyChar == ZOOID_KEY_ARROW_LEFT)
+		{
+			if (MainUIState.textInputCurrentPos > 0)
+			{
+				MainUIState.textInputCurrentPos--;
+			}
+		}
+		else if (keyChar == ZOOID_KEY_ARROW_RIGHT)
+		{
+			Int32 len = TextLength(MainUIState.textInputBuffer);
+			if (MainUIState.textInputCurrentPos < len)
+			{
+				MainUIState.textInputCurrentPos++;
+			}
+		}
+		else if (keyChar == ZOOID_KEY_HOME)
+		{
+			MainUIState.textInputCurrentPos = 0;
+		}
+		else if (keyChar == ZOOID_KEY_END)
+		{
+			Int32 len = TextLength(MainUIState.textInputBuffer);
+			MainUIState.textInputCurrentPos = len;
+		}
+	}
+
+	void UI::RecordTextInput(UIChar keyChar)
+	{
+		// Add to buffer if focus is textInput
+		if (MainUIState.lastTextInput.id != -1 && MainUIState.lastTextInput.id == MainUIState.activeItem.id)
+		{
+			Int32 len = TextLength(MainUIState.textInputBuffer);
+			if (len < MainUIState.textInputLength - 1)
+			{
+				UIMEM_MOVE(MainUIState.textInputBuffer + MainUIState.textInputCurrentPos + 1,
+					MainUIState.textInputBuffer + MainUIState.textInputCurrentPos,
+					len - MainUIState.textInputCurrentPos + 1);
+				MainUIState.textInputBuffer[MainUIState.textInputCurrentPos++] = keyChar;
+			}
+		}
+		else
+		{
+			MainUIState.lastTextInput.id = -1;
+		}
+	}
+
 	bool UI::DoButton(Int32 _id, UIRect& rect, const UIButtonStyle& buttonStyle)
 	{
 		bool mouseInside = rect.isContain(UIVector2{ MainUIState.mouseX, MainUIState.mouseY });
@@ -774,12 +880,83 @@ namespace ZE
 		return selectedIdx;
 	}
 
+	void UI::DoTextInput(Int32 _id, const UIRect& rect, UIChar* bufferChar, Int32 bufferCount, const UITextInputStyle& style /*= DefaultTextInputStyle*/)
+	{
+		bool mouseInside = rect.isContain(UIVector2(MainUIState.mouseX, MainUIState.mouseY));
+		UIRect textRect(UIVector2(rect.m_pos.x + 10, rect.m_pos.y), UIVector2(rect.m_dimension.x - 20, rect.m_dimension.y));
+		
+		if (mouseInside && MainUIState.mouseDown == EButtonState::BUTTON_DOWN)
+		{
+			if (MainUIState.activeItem.id != _id)
+			{
+				// Set Main UI State to use this
+				MainUIState.lastTextInput.id = _id;
+				MainUIState.textInputBuffer = bufferChar;
+				MainUIState.textInputCurrentPos = TextLength(bufferChar);
+				MainUIState.textInputLength = bufferCount;
+			}
+			else
+			{
+				// Update text cursor
+				MainUIState.textInputCurrentPos = style.fontStyle.font->calculatePositionAtLength(bufferChar, MainUIState.mouseX - textRect.m_pos.x, style.fontStyle.fontScale);
+			}
+			MainUIState.activeItem.id = _id;
+		}
+		else if (mouseInside && MainUIState.hotItem.id != _id)
+		{
+			MainUIState.hotItem.id = _id;
+		}
+		else if(!mouseInside && MainUIState.hotItem.id == _id)
+		{
+			MainUIState.hotItem.id = -1;
+		}
+
+		const UIStyle* rectStyle = nullptr;
+		if (MainUIState.activeItem.id == _id || MainUIState.hotItem.id == _id)
+		{
+			rectStyle = &style.activeStyle;
+		}
+		else
+		{
+			rectStyle = &style.defaultStyle;
+		}
+
+		if (rectStyle->texture)
+		{
+			MainUIState.drawer->DrawTexture(rect, rectStyle->texture, rectStyle->fillColor, rectStyle->textureScale, rectStyle->textureOffset);
+		}
+		else
+		{
+			MainUIState.drawer->DrawRect(rect, rectStyle->fillColor);
+		}
+
+
+		if (bufferChar[0] != 0)
+		{
+			DrawTextInRect(_id, textRect, bufferChar, UIVector4(1.0f), ZE::TEXT_LEFT, ZE::TEXT_V_CENTER, style.fontStyle.fontScale, style.fontStyle.font);
+		}
+
+		if (MainUIState.activeItem.id == _id)
+		{
+			static bool blink = false;
+			if (blink)
+			{
+				UIRect blinkRect;
+				blinkRect.m_dimension = { 2.0f, style.fontStyle.font->calculateTextHeight(style.fontStyle.fontScale) };
+				blinkRect.m_pos.x = textRect.m_pos.x + style.fontStyle.font->calculateNTextLength(bufferChar, MainUIState.textInputCurrentPos, style.fontStyle.fontScale);
+				blinkRect.m_pos.y = textRect.m_pos.y + (textRect.m_dimension.y - blinkRect.m_dimension.y) * 0.5f;
+				MainUIState.drawer->DrawRect(blinkRect, UIVector4(1.0f));
+			}
+			blink = !blink;
+		}
+	}
+
 	void UI::DrawTextInPos(Int32 _id, UIVector2& pos, const UIChar* text, const UIVector4& fillColor, UIFont* font, Float32 scale)
 	{
 		MainUIState.drawer->DrawText(pos, fillColor, font, text, scale);
 	}
 
-	void UI::DrawTextInRect(Int32 _id, UIRect& rect, const UIChar* text, UIVector4& fillColor, ETextAlign textAlign /*= TEXT_LEFT*/, ETextVerticalAlign vAlign /*= TEXT_V_CENTER*/, Float32 scale /*= 1.0f*/, UIFont* font)
+	void UI::DrawTextInRect(Int32 _id, const UIRect& rect, const UIChar* text, UIVector4& fillColor, ETextAlign textAlign /*= TEXT_LEFT*/, ETextVerticalAlign vAlign /*= TEXT_V_CENTER*/, Float32 scale /*= 1.0f*/, UIFont* font)
 	{
 		UIVector2 textDimension;
 		textDimension.x = font->calculateTextLength(text, scale);
@@ -806,7 +983,7 @@ namespace ZE
 			break;
 		}
 
-		MainUIState.drawer->DrawText(actualPos, fillColor, font, text, scale);
+		MainUIState.drawer->DrawText(actualPos, fillColor, font, text, scale, false, 0.0f, TEXT_LEFT, rect.m_dimension);
 	}
 
 	void UI::DrawMultiLineText(Int32 _id, const UIRect& rect, const UIChar* text, const UIVector4& fillColor, ETextAlign textAlign /*= TEXT_V_CENTER*/, ETextVerticalAlign vAlign /*= TEXT_V_TOP*/, Float32 scale /*= 1.0f*/, UIFont* font)
@@ -827,7 +1004,7 @@ namespace ZE
 			break;
 		}
 
-		MainUIState.drawer->DrawText(actualPos, fillColor, font, text, scale, true, rect.m_dimension.x, textAlign);
+		MainUIState.drawer->DrawText(actualPos, fillColor, font, text, scale, true, rect.m_dimension.x, textAlign, rect.m_dimension);
 	}
 
 	void UI::DrawTexture(Int32 _id, const UIVector2& pos, UITexture* texture, const UIVector4& colorMultiplier, ETextureScale textureScale, const UIVector4& scaleOffset)
@@ -1103,13 +1280,16 @@ namespace ZE
 
 	}
 
-	void UIDrawer::DrawText(UIVector2& pos, const UIVector4& fillColor, UIFont* font, const UIChar* text, Float32 scale /*= 1.0f*/, bool bWordWrap /*= false*/, Float32 maxWidth /*= 0*/, ETextAlign wrapTextAlign /*= TEXT_LEFT*/)
+	void UIDrawer::DrawText(UIVector2& pos, const UIVector4& fillColor, UIFont* font, const UIChar* text, Float32 scale /*= 1.0f*/, bool bWordWrap /*= false*/, Float32 maxWidth /*= 0*/, ETextAlign wrapTextAlign /*= TEXT_LEFT*/, const UIVector2& dim)
 	{
 #if defined(ZUI_USE_FONT_INSTANCING) && !defined(ZUI_USE_SINGLE_TEXT_ONLY)
 		UIDrawItem* drawItem = m_currentDrawList->getTextureInstanceDrawItem(font->getTextureHandle());
 #elif defined(ZUI_USE_SINGLE_TEXT_ONLY) || !defined(ZUI_GROUP_PER_TEXTURE)
 		UIDrawItem* drawItem = m_currentDrawList->getNextDrawItem();
 		drawItem->m_textureHandle = font->getTextureHandle();
+		drawItem->m_pos = pos;
+		drawItem->m_bCrop = dim.x > 0.0f && dim.y > 0.0f;
+		drawItem->m_shapeDimension = dim;
 #else
 		UIDrawItem* drawItem = m_currentDrawList->getTextureDrawItem(font->getTextureHandle());
 #endif
@@ -1248,6 +1428,7 @@ namespace ZE
 		m_bFont = false;
 		m_bUsingRectInstance = false;
 		m_layer = 0;
+		m_bCrop = false;
 	}
 
 	bool UIRect::isContain(const UIVector2& pos) const
@@ -1398,6 +1579,37 @@ namespace ZE
 		}
 
 		return result;
+	}
+
+	ZE::Float32 UIFont::calculateNTextLength(const UIChar* text, Int32 n, Float32 scale)
+	{
+		int index = 0;
+		char c = text[index++];
+		Float32 result = 0;
+		while (c != '\0' && n--)
+		{
+			int charIndex;
+			HashMapHasAndAssign(m_charMap, c, 0, charIndex);
+			result += scale * m_charDesc[charIndex].Advance;
+			c = text[index++];
+		}
+
+		return result;
+	}
+
+	ZE::Int32 UIFont::calculatePositionAtLength(const UIChar* text, Float32 length, Float32 scale)
+	{
+		Int32 index = 0;
+		char c = text[index++];
+		while (c != '\0' && length > 0)
+		{
+			int charIndex;
+			HashMapHasAndAssign(m_charMap, c, 0, charIndex);
+			length -= scale * m_charDesc[charIndex].Advance;
+			c = text[index++];
+		}
+
+		return index-1;
 	}
 
 	ZE::Float32 UIFont::calculateTextHeight(Float32 scale)

@@ -9,8 +9,11 @@ layout (location = 6) in vec4 uvDim;
 
 out vec4 OutColor;
 out vec2 TexCoord;
+out vec4 FragPos;
+out vec4 NormalizedCropBox;
 
 uniform vec2 screenDimension;
+uniform vec4 CropBox;
 
 void main()
 {
@@ -19,7 +22,13 @@ void main()
 	pos.y = 2.0 * ((pos.y + screenDimension.y) / screenDimension.y) - 1.0;
 	pos.z = 1.0 - instancePos.z;
 
-	gl_Position = vec4( pos, 1.0 );
 	OutColor = color * instanceColor;
 	TexCoord = texCoord * uvDim.zw + uvDim.xy;
+	FragPos = vec4( pos, 1.0 );
+	gl_Position = vec4( pos, 1.0 );
+
+	NormalizedCropBox.x = 2.0 * (( CropBox.x ) / screenDimension.x) - 1.0;
+	NormalizedCropBox.y = 2.0 * (( -CropBox.y + screenDimension.y) / screenDimension.y) - 1.0;
+	NormalizedCropBox.z = CropBox.z * 2.0 / screenDimension.x;
+	NormalizedCropBox.w = CropBox.w * 2.0 / screenDimension.y;
 }

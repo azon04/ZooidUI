@@ -58,6 +58,12 @@ namespace ZE
 
 		UIRenderer* renderer;
 		UIDrawer* drawer;
+
+		// State for TextInput
+		UI_ID lastTextInput;
+		UIChar* textInputBuffer;
+		Int32 textInputLength;
+		Int32 textInputCurrentPos;
 	};
 
 	struct UIVector2
@@ -210,8 +216,11 @@ namespace ZE
 
 		bool isFont() const { return m_bFont; }
 		bool isUsingRectInstance() const { return m_bUsingRectInstance; }
+		bool isCrop() const { return m_bCrop; }
 
 		UIVector2 getDimension() const { return m_shapeDimension; }
+		UIVector2 getPos() const { return m_pos; }
+		UIVector4 getCropDimension() const { return UIVector4(m_pos.x, m_pos.y, m_shapeDimension.x, m_shapeDimension.y); }
 		Float32 getRoundness() const { return m_roundness; }
 		UInt32 getLayer() const { return m_layer; }
 
@@ -224,9 +233,10 @@ namespace ZE
 		UInt32 m_textureHandle = 0;
 		Float32 m_roundness = 0.0f;
 		UIVector2 m_shapeDimension{ 0, 0 };
-
+		UIVector2 m_pos{ 0, 0 };
 		bool m_bFont = false;
 		bool m_bUsingRectInstance = false;
+		bool m_bCrop = false;
 		UInt32 m_layer = 0;
 	};
 
@@ -276,6 +286,9 @@ namespace ZE
 		static UIFont* loadFontFile(const UIChar* fontFilePath, UIRenderer* renderer, Int32 fontSizePx = 15);
 
 		Float32 calculateTextLength(const UIChar* text, Float32 scale);
+		Float32 calculateNTextLength(const UIChar* text, Int32 n, Float32 scale);
+		Int32 calculatePositionAtLength(const UIChar* text, Float32 length, Float32 scale);
+
 		Float32 calculateTextHeight(Float32 scale);
 		Float32 calculateWordWrapTextHeight(const UIChar* text, Float32 scale, Int32 maxWidth);
 
@@ -344,7 +357,7 @@ namespace ZE
 
 		void DrawTexture(const UIRect& rect, UITexture* texture, const UIVector4& fillColor, ETextureScale textureScale = SCALE_IMAGE, const UIVector4& scaleOffset = UIVector4(0.0f));
 		void DrawRect(const UIRect& rect, const UIVector4& fillColor);
-		void DrawText(UIVector2& pos, const UIVector4& fillColor, UIFont* font, const UIChar* text, Float32 scale = 1.0f, bool bWordWrap = false, Float32 maxWidth = 0, ETextAlign wrapTextAlign = TEXT_LEFT);
+		void DrawText(UIVector2& pos, const UIVector4& fillColor, UIFont* font, const UIChar* text, Float32 scale = 1.0f, bool bWordWrap = false, Float32 maxWidth = 0, ETextAlign wrapTextAlign = TEXT_LEFT, const UIVector2& dim = UIVector2(0.0f));
 		void DrawShape(UIArray<UIVector2>& points, const UIVector4& fillColor);
 		void Reset();
 		void SwapBuffer();
@@ -410,6 +423,14 @@ namespace ZE
 		UIFontStyle selectorFontStyle;
 	};
 
+	struct UITextInputStyle
+	{
+		UIStyle defaultStyle;
+		UIStyle activeStyle;
+		UIFontStyle fontStyle;
+		UIChar cursorChar;
+	};
+
 	// Functions to use to draw everything
 	namespace UI
 	{
@@ -424,6 +445,7 @@ namespace ZE
 		extern UIPanelStyle DefaultPanelStyle;
 		extern UIDropdownStyle DefaultDropdownStyle;
 		extern UIFont* DefaultFont;
+		extern UITextInputStyle DefaultTextInputStyle;
 
 		// Getter
 		UIState* GetUIState();
@@ -436,8 +458,24 @@ namespace ZE
 		void BeginFrame();
 		void EndFrame();
 
-		void UpdateMouseState(Float32 mouseX, Float32 mouseY, EButtonState mouseDown);
+		// =============================================
+		// Handle Input
 
+		// Update Mouse State
+		void UpdateMouseState(Float32 mouseX, Float32 mouseY, EButtonState mouseDown);
+		
+		// Update/Record keyboard button
+		void RecordKeyboardButton(UIChar keyChar);
+		
+		// Update/Record keyboard text input
+		void RecordTextInput(UIChar keyChar);
+
+		// ==============================================
+
+		// ==============================================
+		// UI Component
+
+		// Button
 		bool DoButton(Int32 _id, UIRect& rect, const UIButtonStyle& buttonStyle = DefaultButtonStyle);
 		
 		// Return True if Checked
@@ -458,8 +496,13 @@ namespace ZE
 		// DropDown
 		Int32 DoDropDown(Int32 _id, const UIRect& rect, Int32 selectedIdx, const UIChar** textOptions, Int32 optionCount, const UIDropdownStyle& style = DefaultDropdownStyle);
 
+		// Text Input
+		void DoTextInput(Int32 _id, const UIRect& rect, UIChar* bufferChar, Int32 bufferCount, const UITextInputStyle& style = DefaultTextInputStyle);
+		
+		// =================================================
+
 		void DrawTextInPos(Int32 _id, UIVector2& pos, const UIChar* text, const UIVector4& fillColor, UIFont* font = DefaultFont, Float32 scale = 1.0f);
-		void DrawTextInRect(Int32 _id, UIRect& rect, const UIChar* text, UIVector4& fillColor, ETextAlign textAlign = TEXT_LEFT, ETextVerticalAlign vAlign = TEXT_V_CENTER, Float32 scale = 1.0f, UIFont* font = DefaultFont);
+		void DrawTextInRect(Int32 _id, const UIRect& rect, const UIChar* text, UIVector4& fillColor, ETextAlign textAlign = TEXT_LEFT, ETextVerticalAlign vAlign = TEXT_V_CENTER, Float32 scale = 1.0f, UIFont* font = DefaultFont);
 		void DrawMultiLineText(Int32 _id, const UIRect& rect, const UIChar* text, const UIVector4& fillColor, ETextAlign textAlign = TEXT_LEFT, ETextVerticalAlign vAlign = TEXT_V_TOP, Float32 scale = 1.0f, UIFont* font = DefaultFont);
 
 		void DrawTexture(Int32 _id, const UIVector2& pos, UITexture* texture, const UIVector4& colorMultiplier, ETextureScale textureScale = SCALE_IMAGE, const UIVector4& scaleOffset = UIVector4(0.0f));

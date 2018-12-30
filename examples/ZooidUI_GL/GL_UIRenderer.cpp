@@ -309,6 +309,13 @@ namespace ZE
 
 		shader->setVec2("screenDimension", UIVector2{ (Float32)m_width, (Float32)m_height });
 
+		shader->setBool("bCrop", drawItem->isCrop());
+
+		if (drawItem->isCrop())
+		{
+			shader->setVec4("CropBox", drawItem->getCropDimension());
+		}
+
 		if (drawItem->getVertices().size() > 0)
 		{
 			if (isFont)

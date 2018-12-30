@@ -8,6 +8,55 @@ double mouseX = 0.0f;
 double mouseY = 0.0f;
 ZE::EButtonState buttonState = ZE::BUTTON_UP;
 
+void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mode)
+{
+	// ignore Shift/Alt/Ctrl
+	if (key == GLFW_KEY_LEFT_SHIFT || key == GLFW_KEY_RIGHT_SHIFT
+		|| key == GLFW_KEY_LEFT_ALT || key == GLFW_KEY_RIGHT_ALT
+		|| key == GLFW_KEY_LEFT_CONTROL || key == GLFW_KEY_RIGHT_CONTROL)
+	{
+		return;
+	}
+
+	// Convert some key
+	if (key == GLFW_KEY_BACKSPACE)
+	{
+		key = ZOOID_KEY_BACKSPACE;
+	}
+	else if (key == GLFW_KEY_ENTER)
+	{
+		key = ZOOID_KEY_ENTER;
+	}
+	else if (key == GLFW_KEY_DELETE)
+	{
+		key = ZOOID_KEY_DELETE;
+	}
+	else if (key == GLFW_KEY_LEFT)
+	{
+		key = ZOOID_KEY_ARROW_LEFT;
+	}
+	else if (key == GLFW_KEY_RIGHT)
+	{
+		key = ZOOID_KEY_ARROW_RIGHT;
+	}
+	else if (key == GLFW_KEY_HOME)
+	{
+		key = ZOOID_KEY_HOME;
+	}
+	else if (key == GLFW_KEY_END)
+	{
+		key = ZOOID_KEY_END;
+	}
+
+	if(action == GLFW_RELEASE)
+		ZE::UI::RecordKeyboardButton((ZE::UIChar)key);
+}
+
+void charInputCallback(GLFWwindow* window, unsigned int codepoint)
+{
+	ZE::UI::RecordTextInput((ZE::UIChar)codepoint);
+}
+
 void mousePositionCallback(GLFWwindow* window, double xPos, double yPos)
 {
 	mouseX = xPos;
@@ -36,6 +85,8 @@ int main()
 	glfwSetCursorPosCallback((GLFWwindow*)renderer->getWindowContext(), mousePositionCallback);
 	glfwSetMouseButtonCallback((GLFWwindow*)renderer->getWindowContext(), mouseButtonUpdateCallback);
 	glfwSetFramebufferSizeCallback((GLFWwindow*)renderer->getWindowContext(), windowFrameBufferSizeCallback);
+	glfwSetKeyCallback((GLFWwindow*)renderer->getWindowContext(), keyCallback);
+	glfwSetCharCallback((GLFWwindow*)renderer->getWindowContext(), charInputCallback);
 
 	ZE::UITexture* panelBg = ZE::UI::LoadTexture("../../Resource/Textures/PanelBg.png");
 
@@ -46,7 +97,7 @@ int main()
 
 	ZE::UIRect panelRect;
 	panelRect.m_pos = { 100, 100 };
-	panelRect.m_dimension = { 250, 300 };
+	panelRect.m_dimension = { 250, 350 };
 	panelRect.m_roundness = 10;
 
 	ZE::UIRect panel2Rect = panelRect;
@@ -79,6 +130,12 @@ int main()
 	ZE::UIRect buttonRect;
 	buttonRect.m_dimension = { 150, 40 };
 	buttonRect.m_roundness = 10.0f;
+
+	ZE::UIRect textInputRect;
+	textInputRect.m_dimension = { 200, 32 };
+
+	ZE::UIChar bufferInput[256];
+	bufferInput[0] = 0;
 
 	while (!renderer->requestToClose())
 	{
@@ -128,10 +185,15 @@ int main()
 		sliderRect.m_pos = contentPos;
 		sliderPercent = ZE::UI::DoSlider(9, sliderRect, sliderPercent);
 
-		contentPos.y += sliderRect.m_dimension.y + 10;
+		contentPos.y += sliderRect.m_dimension.y + 15;
 
 		dropDownRect.m_pos = contentPos;
 		dropdownIndex = ZE::UI::DoDropDown(16, dropDownRect, dropdownIndex, dropdownText, 5);
+
+		contentPos.y += sliderRect.m_dimension.y + 15;
+
+		textInputRect.m_pos = contentPos;
+		ZE::UI::DoTextInput(17, textInputRect, bufferInput, 256);
 
 		{
 			ZE::UI::DoPanel(10, panel2Rect, "Image Scaling...", 10, contentPos, bPanelClosed);
