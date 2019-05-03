@@ -54,6 +54,7 @@ namespace ZE
 	{
 		MainUIState.drawer = UINEW(UIDrawer);
 		MainUIState.renderer = Platform::CreateRenderer();
+		MainUIState.timeFromStart = 0.0f;
 
 		MainUIState.renderer->Init(width, height);
 
@@ -207,6 +208,7 @@ namespace ZE
 	void UI::BeginFrame()
 	{
 		MainUIState.drawer->Reset();
+		MainUIState.timeFromStart += MainUIState.mainTimer.ResetAndGetDeltaMS();
 	}
 
 	void UI::EndFrame()
@@ -224,11 +226,11 @@ namespace ZE
 		MainUIState.mouseDown = mouseDown;
 	}
 
-	void UI::RecordKeyboardButton(UIChar keyChar)
+	void UI::RecordKeyboardButton(UIChar keyChar, int keyState)
 	{
 		// Handle Keys
 		// Backspace key
-		if (keyChar == ZOOID_KEY_BACKSPACE)
+		if (keyChar == ZOOID_KEY_BACKSPACE && (keyState == 0 || keyState == 2))
 		{
 			if (MainUIState.textInputCurrentPos > 0)
 			{
@@ -238,6 +240,15 @@ namespace ZE
 					len - MainUIState.textInputCurrentPos + 1);
 
 				MainUIState.textInputCurrentPos--;
+
+				if (MainUIState.textInputCurrentPos > MainUIState.textInputMaxScroll)
+				{
+					MainUIState.textInputScrollPos = MainUIState.textInputCurrentPos - MainUIState.textInputMaxScroll;
+				}
+				else
+				{
+					MainUIState.textInputScrollPos = 0;
+				}
 			}
 			return;
 		}
@@ -245,7 +256,7 @@ namespace ZE
 		{
 			return;
 		}
-		else if (keyChar == ZOOID_KEY_DELETE)
+		else if (keyChar == ZOOID_KEY_DELETE && (keyState == 0 || keyState == 2))
 		{
 			Int32 len = TextLength(MainUIState.textInputBuffer);
 			if (MainUIState.textInputCurrentPos < len)
@@ -257,19 +268,29 @@ namespace ZE
 			}
 			return;
 		}
-		else if (keyChar == ZOOID_KEY_ARROW_LEFT)
+		else if (keyChar == ZOOID_KEY_ARROW_LEFT && (keyState == 0 || keyState == 2))
 		{
 			if (MainUIState.textInputCurrentPos > 0)
 			{
 				MainUIState.textInputCurrentPos--;
+
+				if (MainUIState.textInputCurrentPos < MainUIState.textInputScrollPos)
+				{
+					MainUIState.textInputScrollPos = MainUIState.textInputCurrentPos;
+				}
 			}
 		}
-		else if (keyChar == ZOOID_KEY_ARROW_RIGHT)
+		else if (keyChar == ZOOID_KEY_ARROW_RIGHT && (keyState == 0 || keyState == 2))
 		{
 			Int32 len = TextLength(MainUIState.textInputBuffer);
 			if (MainUIState.textInputCurrentPos < len)
 			{
 				MainUIState.textInputCurrentPos++;
+
+				if (MainUIState.textInputCurrentPos > MainUIState.textInputScrollPos + MainUIState.textInputMaxScroll)
+				{
+					MainUIState.textInputScrollPos = MainUIState.textInputCurrentPos - MainUIState.textInputMaxScroll;
+				}
 			}
 		}
 		else if (keyChar == ZOOID_KEY_HOME)
@@ -295,6 +316,11 @@ namespace ZE
 					MainUIState.textInputBuffer + MainUIState.textInputCurrentPos,
 					len - MainUIState.textInputCurrentPos + 1);
 				MainUIState.textInputBuffer[MainUIState.textInputCurrentPos++] = keyChar;
+				
+				if (MainUIState.textInputCurrentPos > MainUIState.textInputMaxScroll)
+				{
+					MainUIState.textInputScrollPos = MainUIState.textInputCurrentPos - MainUIState.textInputMaxScroll;
+				}
 			}
 		}
 		else
@@ -884,7 +910,8 @@ namespace ZE
 	{
 		bool mouseInside = rect.isContain(UIVector2(MainUIState.mouseX, MainUIState.mouseY));
 		UIRect textRect(UIVector2(rect.m_pos.x + 10, rect.m_pos.y), UIVector2(rect.m_dimension.x - 20, rect.m_dimension.y));
-		
+		Int32 textInputScrollPos = 0;
+
 		if (mouseInside && MainUIState.mouseDown == EButtonState::BUTTON_DOWN)
 		{
 			if (MainUIState.activeItem.id != _id)
@@ -894,11 +921,12 @@ namespace ZE
 				MainUIState.textInputBuffer = bufferChar;
 				MainUIState.textInputCurrentPos = TextLength(bufferChar);
 				MainUIState.textInputLength = bufferCount;
+				MainUIState.textInputScrollPos = 0;
 			}
 			else
 			{
 				// Update text cursor
-				MainUIState.textInputCurrentPos = style.fontStyle.font->calculatePositionAtLength(bufferChar, MainUIState.mouseX - textRect.m_pos.x, style.fontStyle.fontScale);
+				MainUIState.textInputCurrentPos = MainUIState.textInputScrollPos + style.fontStyle.font->calculatePositionAtLength(bufferChar + MainUIState.textInputScrollPos * sizeof(UIChar), MainUIState.mouseX - textRect.m_pos.x, style.fontStyle.fontScale);
 			}
 			MainUIState.activeItem.id = _id;
 		}
@@ -921,6 +949,20 @@ namespace ZE
 			rectStyle = &style.defaultStyle;
 		}
 
+		if (MainUIState.activeItem.id == _id)
+		{
+			textInputScrollPos = MainUIState.textInputScrollPos;
+			Float32 textLength = style.fontStyle.font->calculateTextLength(bufferChar + textInputScrollPos * sizeof(UIChar), style.fontStyle.fontScale);
+			if (textLength > textRect.m_dimension.x)
+			{
+				MainUIState.textInputMaxScroll = style.fontStyle.font->calculatePositionAtLength(bufferChar + textInputScrollPos * sizeof(UIChar), textRect.m_dimension.x, style.fontStyle.fontScale);
+			}
+			else
+			{
+				MainUIState.textInputMaxScroll = 19; // style.fontStyle.font->calculatePositionAtLength(bufferChar + textInputScrollPos * sizeof(UIChar), textRect.m_dimension.x, style.fontStyle.fontScale);
+			}
+		}
+
 		if (rectStyle->texture)
 		{
 			MainUIState.drawer->DrawTexture(rect, rectStyle->texture, rectStyle->fillColor, rectStyle->textureScale, rectStyle->textureOffset);
@@ -933,21 +975,21 @@ namespace ZE
 
 		if (bufferChar[0] != 0)
 		{
-			DrawTextInRect(_id, textRect, bufferChar, UIVector4(1.0f), ZE::TEXT_LEFT, ZE::TEXT_V_CENTER, style.fontStyle.fontScale, style.fontStyle.font);
+			DrawTextInRect(_id, textRect, bufferChar + textInputScrollPos * sizeof(UIChar), UIVector4(1.0f), ZE::TEXT_LEFT, ZE::TEXT_V_CENTER, style.fontStyle.fontScale, style.fontStyle.font);
 		}
 
 		if (MainUIState.activeItem.id == _id)
 		{
-			static bool blink = false;
-			if (blink)
+			static Float32 timer = 0.0f;
+			timer += MainUIState.mainTimer.GetDeltaMS() / 1000.0f;
+			if (int(timer/0.25f) % 2 == 0)
 			{
-				UIRect blinkRect;
+				static UIRect blinkRect;
 				blinkRect.m_dimension = { 2.0f, style.fontStyle.font->calculateTextHeight(style.fontStyle.fontScale) };
-				blinkRect.m_pos.x = textRect.m_pos.x + style.fontStyle.font->calculateNTextLength(bufferChar, MainUIState.textInputCurrentPos, style.fontStyle.fontScale);
+				blinkRect.m_pos.x = textRect.m_pos.x + style.fontStyle.font->calculateNTextLength(bufferChar + textInputScrollPos * sizeof(UIChar), MainUIState.textInputCurrentPos - textInputScrollPos, style.fontStyle.fontScale);
 				blinkRect.m_pos.y = textRect.m_pos.y + (textRect.m_dimension.y - blinkRect.m_dimension.y) * 0.5f;
 				MainUIState.drawer->DrawRect(blinkRect, UIVector4(1.0f));
 			}
-			blink = !blink;
 		}
 	}
 

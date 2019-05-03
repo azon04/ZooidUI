@@ -2,6 +2,7 @@
 #define __ZE_UI_H__
 
 #include "ZooidUI_Config.h"
+#include "Common/Timer.h"
 
 namespace ZE
 {
@@ -64,6 +65,11 @@ namespace ZE
 		UIChar* textInputBuffer;
 		Int32 textInputLength;
 		Int32 textInputCurrentPos;
+		Int32 textInputMaxScroll;
+		Int32 textInputScrollPos;
+
+		Timer mainTimer;
+		Float32 timeFromStart;
 	};
 
 	struct UIVector2
@@ -465,7 +471,8 @@ namespace ZE
 		void UpdateMouseState(Float32 mouseX, Float32 mouseY, EButtonState mouseDown);
 		
 		// Update/Record keyboard button
-		void RecordKeyboardButton(UIChar keyChar);
+		// Key State: 0:pressed 1:release 2: repeat
+		void RecordKeyboardButton(UIChar keyChar, int keyState);
 		
 		// Update/Record keyboard text input
 		void RecordTextInput(UIChar keyChar);

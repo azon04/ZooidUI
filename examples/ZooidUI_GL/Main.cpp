@@ -48,8 +48,24 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mode
 		key = ZOOID_KEY_END;
 	}
 
-	if(action == GLFW_RELEASE)
-		ZE::UI::RecordKeyboardButton((ZE::UIChar)key);
+	int keyState = -1;
+	switch (action)
+	{
+	case GLFW_PRESS:
+		keyState = 0;
+		break;
+	case GLFW_RELEASE:
+		keyState = 1;
+		break;
+	case GLFW_REPEAT:
+		keyState = 2;
+		break;
+	}
+
+	if (keyState != -1)
+	{
+		ZE::UI::RecordKeyboardButton((ZE::UIChar)key, action == GLFW_RELEASE);
+	}
 }
 
 void charInputCallback(GLFWwindow* window, unsigned int codepoint)
@@ -195,6 +211,8 @@ int main()
 		textInputRect.m_pos = contentPos;
 		ZE::UI::DoTextInput(17, textInputRect, bufferInput, 256);
 
+
+#if 0
 		{
 			ZE::UI::DoPanel(10, panel2Rect, "Image Scaling...", 10, contentPos, bPanelClosed);
 
@@ -232,7 +250,8 @@ int main()
 			ZE::UI::DrawMultiLineText(15, textRect, "Text Align Right.\nLorem Ipsum Dolor Sit Amet. Lorem Ipsum Dolor Sit Amet.\nLorem Ipsum Dolor Sit Amet. Anpan. Anpan. Anpan. Anpan. Anpan. Anpan.", ZE::UIVector4{ 1.0f, 1.0f, 1.0f, 1.0f }, ZE::TEXT_RIGHT);
 		
 		}
-		
+#endif
+
 		ZE::UI::EndFrame();
 		cpuTime = ZE::UI::Lerp( cpuTime, timer.ResetAndGetDeltaMS(), cpuTime == 0.0f ? 1.0f : .01f);
 		
