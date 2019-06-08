@@ -912,6 +912,8 @@ namespace ZE
 		UIRect textRect(UIVector2(rect.m_pos.x + 10, rect.m_pos.y), UIVector2(rect.m_dimension.x - 20, rect.m_dimension.y));
 		Int32 textInputScrollPos = 0;
 
+		static Int32 lastMaxLength = 100000;
+
 		if (mouseInside && MainUIState.mouseDown == EButtonState::BUTTON_DOWN)
 		{
 			if (MainUIState.activeItem.id != _id)
@@ -922,6 +924,7 @@ namespace ZE
 				MainUIState.textInputCurrentPos = TextLength(bufferChar);
 				MainUIState.textInputLength = bufferCount;
 				MainUIState.textInputScrollPos = 0;
+				lastMaxLength = 100000;
 			}
 			else
 			{
@@ -955,11 +958,12 @@ namespace ZE
 			Float32 textLength = style.fontStyle.font->calculateTextLength(bufferChar + textInputScrollPos * sizeof(UIChar), style.fontStyle.fontScale);
 			if (textLength > textRect.m_dimension.x)
 			{
-				MainUIState.textInputMaxScroll = style.fontStyle.font->calculatePositionAtLength(bufferChar + textInputScrollPos * sizeof(UIChar), textRect.m_dimension.x, style.fontStyle.fontScale);
+				MainUIState.textInputMaxScroll = style.fontStyle.font->calculatePositionAtLength(bufferChar + textInputScrollPos * sizeof(UIChar), textRect.m_dimension.x, style.fontStyle.fontScale) - 1;
+				lastMaxLength = MainUIState.textInputMaxScroll;
 			}
 			else
 			{
-				MainUIState.textInputMaxScroll = 19; // style.fontStyle.font->calculatePositionAtLength(bufferChar + textInputScrollPos * sizeof(UIChar), textRect.m_dimension.x, style.fontStyle.fontScale);
+				MainUIState.textInputMaxScroll = lastMaxLength; // style.fontStyle.font->calculatePositionAtLength(bufferChar + textInputScrollPos * sizeof(UIChar), textRect.m_dimension.x, style.fontStyle.fontScale);
 			}
 		}
 
