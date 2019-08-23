@@ -4,6 +4,7 @@
 #include FT_FREETYPE_H
 
 #include <stdlib.h>
+#include <stdio.h>
 #include <iostream>
 #include "UIRenderer.h"
 
@@ -31,6 +32,7 @@ namespace ZE
 	UIPanelStyle UI::DefaultPanelStyle;
 	UIDropdownStyle UI::DefaultDropdownStyle;
 	UITextInputStyle UI::DefaultTextInputStyle;
+	UIFontStyle UI::DefaultFontStyle;
 
 	UIFont* UI::DefaultFont = nullptr;
 
@@ -179,6 +181,11 @@ namespace ZE
 		DefaultTextInputStyle.activeStyle.textureOffset = UIVector4(0.20f);
 		DefaultTextInputStyle.fontStyle.font = DefaultFont;
 		DefaultTextInputStyle.fontStyle.fontScale = 1.0f;
+
+		// Default Font Style
+		DefaultFontStyle.font = DefaultFont;
+		DefaultFontStyle.fontScale = 1.0f;
+
 	}
 
 	void UI::ResizeWindow(Int32 width, Int32 height)
@@ -986,7 +993,7 @@ namespace ZE
 		{
 			static Float32 timer = 0.0f;
 			timer += MainUIState.mainTimer.GetDeltaMS() / 1000.0f;
-			if (int(timer/0.25f) % 2 == 0)
+			if (int(timer * 50.0f) % 2 == 0)
 			{
 				static UIRect blinkRect;
 				blinkRect.m_dimension = { 2.0f, style.fontStyle.font->calculateTextHeight(style.fontStyle.fontScale) };
@@ -995,6 +1002,34 @@ namespace ZE
 				MainUIState.drawer->DrawRect(blinkRect, UIVector4(1.0f));
 			}
 		}
+	}
+
+	ZE::Float32 UI::DoNumberStepper(Int32 _id, const UIRect& rect, Float32 number, Float32 step, bool asInt /*= false*/, const UIFontStyle& textStyle /*= DefaultFontStyle*/, const UIButtonStyle& buttonStyle /*= DefaultButtonStyle*/)
+	{
+		UIChar charBuffer[256];
+		StringHelper::NumberToString(number, charBuffer, 256, asInt);
+		DrawTextInRect(_id, rect, charBuffer, UIVector4(1.0f), TEXT_CENTER, TEXT_V_CENTER, textStyle.fontScale, textStyle.font);
+
+		UIRect buttonRect;
+		buttonRect.m_dimension.x = 35.0f;
+		buttonRect.m_dimension.y = rect.m_dimension.y;
+		buttonRect.m_pos = rect.m_pos;
+		if (DoButton(_id + 1, buttonRect, buttonStyle))
+		{
+			number -= step;
+		}
+
+		DrawTextInRect(_id, buttonRect, "<", UIVector4(1.0f), TEXT_CENTER, TEXT_V_CENTER, textStyle.fontScale, textStyle.font);
+
+		buttonRect.m_pos.x = rect.m_pos.x + rect.m_dimension.x - buttonRect.m_dimension.x;
+		if (DoButton(_id + 2, buttonRect, buttonStyle))
+		{
+			number += step;
+		}
+
+		DrawTextInRect(_id, buttonRect, ">", UIVector4(1.0f), TEXT_CENTER, TEXT_V_CENTER, textStyle.fontScale, textStyle.font);
+
+		return number;
 	}
 
 	void UI::DrawTextInPos(Int32 _id, UIVector2& pos, const UIChar* text, const UIVector4& fillColor, UIFont* font, Float32 scale)
@@ -1991,6 +2026,45 @@ namespace ZE
 			m_renderer->destroyTexture(m_textureHandle);
 			m_textureHandle = 0;
 		}
+	}
+
+	void StringHelper::NumberToString(Float32 number, UIChar* bufferChar, Int32 bufferCount, bool asInt /*= false*/)
+	{
+		sprintf_s(bufferChar, bufferCount, asInt ? "%.0f" : "%.2f", number);
+	}
+
+	ZE::Float32 StringHelper::StringToNumber(UIChar* bufferChar)
+	{
+		Float32 result = 0.0f;
+
+		Int32 idx = 0;
+		Float32 divider = 1.0f;
+		bool decimalFlag = false;
+
+		while (bufferChar[idx] != 0)
+		{
+			if (bufferChar[idx] == '.')
+			{
+				decimalFlag = true;
+				idx++;
+				continue;
+			}
+
+			if (decimalFlag)
+			{
+				divider /= 10.0f;
+			}
+			else
+			{
+				result *= 10.0f;
+			}
+
+			result += float(bufferChar[idx] - '0') * divider;
+
+			idx++;
+		}
+
+		return result;
 	}
 
 }

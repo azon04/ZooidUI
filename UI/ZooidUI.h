@@ -379,6 +379,13 @@ namespace ZE
 		const Float32 m_step = 0.00001f;
 	};
 
+	class StringHelper
+	{
+	public:
+		static void NumberToString(Float32 number, UIChar* bufferChar, Int32 bufferCount, bool asInt = false);
+		static Float32 StringToNumber(UIChar* bufferChar);
+	};
+
 	// Font Style
 	struct UIFontStyle
 	{
@@ -452,6 +459,7 @@ namespace ZE
 		extern UIDropdownStyle DefaultDropdownStyle;
 		extern UIFont* DefaultFont;
 		extern UITextInputStyle DefaultTextInputStyle;
+		extern UIFontStyle DefaultFontStyle;
 
 		// Getter
 		UIState* GetUIState();
@@ -506,6 +514,9 @@ namespace ZE
 		// Text Input
 		void DoTextInput(Int32 _id, const UIRect& rect, UIChar* bufferChar, Int32 bufferCount, const UITextInputStyle& style = DefaultTextInputStyle);
 		
+		// Button Stepper : This will occupy 3 ids. the next id to be used after this call should be _id + 3
+		Float32 DoNumberStepper(Int32 _id, const UIRect& rect, Float32 number, Float32 step, bool asInt = false, const UIFontStyle& textStyle = DefaultFontStyle, const UIButtonStyle& buttonStyle = DefaultButtonStyle);
+
 		// =================================================
 
 		void DrawTextInPos(Int32 _id, UIVector2& pos, const UIChar* text, const UIVector4& fillColor, UIFont* font = DefaultFont, Float32 scale = 1.0f);

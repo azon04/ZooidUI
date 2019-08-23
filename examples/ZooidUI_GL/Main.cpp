@@ -113,7 +113,7 @@ int main()
 
 	ZE::UIRect panelRect;
 	panelRect.m_pos = { 100, 100 };
-	panelRect.m_dimension = { 250, 350 };
+	panelRect.m_dimension = { 250, 400 };
 	panelRect.m_roundness = 10;
 
 	ZE::UIRect panel2Rect = panelRect;
@@ -150,8 +150,13 @@ int main()
 	ZE::UIRect textInputRect;
 	textInputRect.m_dimension = { 200, 32 };
 
+	ZE::UIRect numberStepperRect;
+	numberStepperRect.m_dimension = { 150, 32 };
+
 	ZE::UIChar bufferInput[256];
 	bufferInput[0] = 0;
+
+	ZE::Float32 number = 1.0f;
 
 	while (!renderer->requestToClose())
 	{
@@ -211,6 +216,10 @@ int main()
 		textInputRect.m_pos = contentPos;
 		ZE::UI::DoTextInput(17, textInputRect, bufferInput, 256);
 
+		contentPos.y += textInputRect.m_dimension.y + 15;
+
+		numberStepperRect.m_pos = contentPos;
+		number = ZE::UI::DoNumberStepper(18, numberStepperRect, number, 1.0f, true);
 
 #if 0
 		{
