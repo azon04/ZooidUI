@@ -57,6 +57,9 @@
 #define ZOOID_KEY_HOME 2
 #define ZOOID_KEY_END 3
 
+// Text Input: Length of temp text input (use as temp buffer)
+#define TEXT_TEMP_LENGTH 246
+
 // Data Types: Change Data Types if needed
 namespace ZE
 {

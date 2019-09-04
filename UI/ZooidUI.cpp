@@ -60,6 +60,11 @@ namespace ZE
 
 		MainUIState.renderer->Init(width, height);
 
+		MainUIState.textTempLength = TEXT_TEMP_LENGTH;
+		MainUIState.textTempBuffer = UINEW(UIChar[TEXT_TEMP_LENGTH]); // #TODO need to create UIAlloc
+
+		MainUIState.textInputFilterChar = nullptr;
+
 		UITextureManager::Init();
 
 		// Default Textures
@@ -210,6 +215,11 @@ namespace ZE
 		{
 			UIFREE(MainUIState.drawer);
 		}
+
+		if (MainUIState.textTempBuffer)
+		{
+			UIFREE(MainUIState.textTempBuffer);
+		}
 	}
 
 	void UI::BeginFrame()
@@ -316,6 +326,7 @@ namespace ZE
 		// Add to buffer if focus is textInput
 		if (MainUIState.lastTextInput.id != -1 && MainUIState.lastTextInput.id == MainUIState.activeItem.id)
 		{
+			if (MainUIState.textInputFilterChar && !MainUIState.textInputFilterChar(keyChar)) { return; }
 			Int32 len = TextLength(MainUIState.textInputBuffer);
 			if (len < MainUIState.textInputLength - 1)
 			{
@@ -931,6 +942,7 @@ namespace ZE
 				MainUIState.textInputCurrentPos = TextLength(bufferChar);
 				MainUIState.textInputLength = bufferCount;
 				MainUIState.textInputScrollPos = 0;
+				MainUIState.textInputFilterChar = nullptr;
 				lastMaxLength = 100000;
 			}
 			else
@@ -1030,6 +1042,111 @@ namespace ZE
 		DrawTextInRect(_id, buttonRect, ">", UIVector4(1.0f), TEXT_CENTER, TEXT_V_CENTER, textStyle.fontScale, textStyle.font);
 
 		return number;
+	}
+
+	ZE::Float32 UI::DoNumberInput(Int32 _id, const UIRect& rect, Float32 number, const UITextInputStyle& style /*= DefaultTextInputStyle*/, bool asInt /*= false*/)
+	{
+		static UIChar charBuffer[256];
+		UIChar* bufferChar = MainUIState.activeItem.id == _id ? MainUIState.textTempBuffer : charBuffer;
+		Float32 result = number;
+
+		bool mouseInside = rect.isContain(UIVector2(MainUIState.mouseX, MainUIState.mouseY));
+		UIRect textRect(UIVector2(rect.m_pos.x + 10, rect.m_pos.y), UIVector2(rect.m_dimension.x - 20, rect.m_dimension.y));
+		Int32 textInputScrollPos = 0;
+
+		static Int32 lastMaxLength = 100000;
+
+		if (mouseInside && MainUIState.mouseDown == EButtonState::BUTTON_DOWN)
+		{
+			if (MainUIState.activeItem.id != _id)
+			{
+				// Set Main UI State to use this
+				StringHelper::NumberToString(number, MainUIState.textTempBuffer, TEXT_TEMP_LENGTH, asInt);
+				MainUIState.lastTextInput.id = _id;
+				MainUIState.textInputBuffer = MainUIState.textTempBuffer;
+				MainUIState.textInputCurrentPos = TextLength(MainUIState.textTempBuffer);
+				MainUIState.textInputLength = TEXT_TEMP_LENGTH;
+				MainUIState.textInputScrollPos = 0;
+				MainUIState.textInputFilterChar = StringHelper::NumberFilterChar;
+				lastMaxLength = 100000;
+			}
+			else
+			{
+				// Update text cursor
+				MainUIState.textInputCurrentPos = MainUIState.textInputScrollPos + style.fontStyle.font->calculatePositionAtLength(MainUIState.textTempBuffer + MainUIState.textInputScrollPos * sizeof(UIChar), MainUIState.mouseX - textRect.m_pos.x, style.fontStyle.fontScale);
+			}
+			MainUIState.activeItem.id = _id;
+		}
+		else if (mouseInside && MainUIState.hotItem.id != _id)
+		{
+			MainUIState.hotItem.id = _id;
+		}
+		else if (!mouseInside && MainUIState.hotItem.id == _id)
+		{
+			MainUIState.hotItem.id = -1;
+			result = StringHelper::StringToNumber(MainUIState.textTempBuffer);
+			StringHelper::NumberToString(number, charBuffer, 256, asInt);
+		}
+		else
+		{
+			StringHelper::NumberToString(number, charBuffer, 256, asInt);
+		}
+
+		const UIStyle* rectStyle = nullptr;
+		if (MainUIState.activeItem.id == _id || MainUIState.hotItem.id == _id)
+		{
+			rectStyle = &style.activeStyle;
+		}
+		else
+		{
+			rectStyle = &style.defaultStyle;
+		}
+
+		if (MainUIState.activeItem.id == _id)
+		{
+			textInputScrollPos = MainUIState.textInputScrollPos;
+			Float32 textLength = style.fontStyle.font->calculateTextLength(bufferChar + textInputScrollPos * sizeof(UIChar), style.fontStyle.fontScale);
+			if (textLength > textRect.m_dimension.x)
+			{
+				MainUIState.textInputMaxScroll = style.fontStyle.font->calculatePositionAtLength(bufferChar + textInputScrollPos * sizeof(UIChar), textRect.m_dimension.x, style.fontStyle.fontScale) - 1;
+				lastMaxLength = MainUIState.textInputMaxScroll;
+			}
+			else
+			{
+				MainUIState.textInputMaxScroll = lastMaxLength; // style.fontStyle.font->calculatePositionAtLength(bufferChar + textInputScrollPos * sizeof(UIChar), textRect.m_dimension.x, style.fontStyle.fontScale);
+			}
+		}
+
+		if (rectStyle->texture)
+		{
+			MainUIState.drawer->DrawTexture(rect, rectStyle->texture, rectStyle->fillColor, rectStyle->textureScale, rectStyle->textureOffset);
+		}
+		else
+		{
+			MainUIState.drawer->DrawRect(rect, rectStyle->fillColor);
+		}
+
+
+		if (bufferChar[0] != 0)
+		{
+			DrawTextInRect(_id, textRect, bufferChar + textInputScrollPos * sizeof(UIChar), UIVector4(1.0f), ZE::TEXT_LEFT, ZE::TEXT_V_CENTER, style.fontStyle.fontScale, style.fontStyle.font);
+		}
+
+		if (MainUIState.activeItem.id == _id)
+		{
+			static Float32 timer = 0.0f;
+			timer += MainUIState.mainTimer.GetDeltaMS() / 1000.0f;
+			if (int(timer * 50.0f) % 2 == 0)
+			{
+				static UIRect blinkRect;
+				blinkRect.m_dimension = { 2.0f, style.fontStyle.font->calculateTextHeight(style.fontStyle.fontScale) };
+				blinkRect.m_pos.x = textRect.m_pos.x + style.fontStyle.font->calculateNTextLength(bufferChar + textInputScrollPos * sizeof(UIChar), MainUIState.textInputCurrentPos - textInputScrollPos, style.fontStyle.fontScale);
+				blinkRect.m_pos.y = textRect.m_pos.y + (textRect.m_dimension.y - blinkRect.m_dimension.y) * 0.5f;
+				MainUIState.drawer->DrawRect(blinkRect, UIVector4(1.0f));
+			}
+		}
+
+		return result;
 	}
 
 	void UI::DrawTextInPos(Int32 _id, UIVector2& pos, const UIChar* text, const UIVector4& fillColor, UIFont* font, Float32 scale)
@@ -2052,7 +2169,7 @@ namespace ZE
 
 			if (decimalFlag)
 			{
-				divider /= 10.0f;
+				divider =  divider * 0.1f;
 			}
 			else
 			{
@@ -2065,6 +2182,11 @@ namespace ZE
 		}
 
 		return result;
+	}
+
+	bool StringHelper::NumberFilterChar(UIChar keyChar)
+	{
+		return (keyChar >= '0' && keyChar <= '9') || keyChar == '.';
 	}
 
 }

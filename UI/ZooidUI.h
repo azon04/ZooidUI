@@ -10,6 +10,8 @@ namespace ZE
 	class UIRenderer;
 	class UIDrawer;
 
+	typedef bool(*FilterChar)(UIChar);
+
 	struct UI_ID
 	{
 		Int32 owner = -1;
@@ -67,6 +69,12 @@ namespace ZE
 		Int32 textInputCurrentPos;
 		Int32 textInputMaxScroll;
 		Int32 textInputScrollPos;
+
+		FilterChar textInputFilterChar;
+
+		// Temp Buffer
+		UIChar* textTempBuffer;
+		Int32 textTempLength;
 
 		Timer mainTimer;
 		Float32 timeFromStart;
@@ -384,6 +392,7 @@ namespace ZE
 	public:
 		static void NumberToString(Float32 number, UIChar* bufferChar, Int32 bufferCount, bool asInt = false);
 		static Float32 StringToNumber(UIChar* bufferChar);
+		static bool NumberFilterChar(UIChar keyChar);
 	};
 
 	// Font Style
@@ -516,6 +525,9 @@ namespace ZE
 		
 		// Button Stepper : This will occupy 3 ids. the next id to be used after this call should be _id + 3
 		Float32 DoNumberStepper(Int32 _id, const UIRect& rect, Float32 number, Float32 step, bool asInt = false, const UIFontStyle& textStyle = DefaultFontStyle, const UIButtonStyle& buttonStyle = DefaultButtonStyle);
+
+		// Number Text Input
+		Float32 DoNumberInput(Int32 _id, const UIRect& rect, Float32 number, const UITextInputStyle& style = DefaultTextInputStyle, bool asInt = false);
 
 		// =================================================
 
