@@ -113,7 +113,7 @@ int main()
 
 	ZE::UIRect panelRect;
 	panelRect.m_pos = { 100, 100 };
-	panelRect.m_dimension = { 250, 450 };
+	panelRect.m_dimension = { 250, 575 };
 	panelRect.m_roundness = 10;
 
 	ZE::UIRect panel2Rect = panelRect;
@@ -161,6 +161,14 @@ int main()
 
 	ZE::Float32 number = 1.0f;
 	ZE::Float32 number2 = 1.0f;
+
+	ZE::UIRect vecInputRect;
+	vecInputRect.m_dimension = { 230, 32 };
+	
+	ZE::Float32 vec2[2] = { 0.0f, 0.0f };
+	ZE::Float32 vec3[3] = { 0.0f, 0.0f, 0.0f };
+	ZE::Float32 vec4[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+
 
 	while (!renderer->requestToClose())
 	{
@@ -229,6 +237,21 @@ int main()
 
 		numberInputRect.m_pos = contentPos;
 		number2 = ZE::UI::DoNumberInput(21, numberInputRect, number2);
+
+		contentPos.y += numberInputRect.m_dimension.y + 15;
+
+		vecInputRect.m_pos = contentPos;
+		ZE::UI::DoVector2Input(23, vecInputRect, vec2);
+
+		contentPos.y += numberInputRect.m_dimension.y + 15;
+
+		vecInputRect.m_pos = contentPos;
+		ZE::UI::DoVector3Input(25, vecInputRect, vec3);
+
+		contentPos.y += numberInputRect.m_dimension.y + 15;
+
+		vecInputRect.m_pos = contentPos;
+		ZE::UI::DoVector4Input(28, vecInputRect, vec4);
 
 #if 0
 		{

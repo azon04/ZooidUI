@@ -50,6 +50,7 @@ namespace ZE
 	public:
 		UI_ID hotItem;
 		UI_ID activeItem;
+		UI_ID lastActiveItem;
 
 		Float32 mouseX;
 		Float32 mouseY;
@@ -528,6 +529,15 @@ namespace ZE
 
 		// Number Text Input
 		Float32 DoNumberInput(Int32 _id, const UIRect& rect, Float32 number, const UITextInputStyle& style = DefaultTextInputStyle, bool asInt = false);
+
+		// Vector2 input. This will use 2 ids.
+		void DoVector2Input(Int32 _id, const UIRect& rect, Float32* vec2, const UITextInputStyle& style = DefaultTextInputStyle, bool asInt = false);
+
+		// Vector3 input. This will use 3 ids
+		void DoVector3Input(Int32 _id, const UIRect& rect, Float32* vec3, const UITextInputStyle& style = DefaultTextInputStyle, bool asInt = false);
+
+		// Vector4 input. This will use 4 ids
+		void DoVector4Input(Int32 _id, const UIRect& rect, Float32* vec4, const UITextInputStyle& style = DefaultTextInputStyle, bool asInt = false);
 
 		// =================================================
 

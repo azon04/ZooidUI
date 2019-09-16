@@ -1056,12 +1056,11 @@ namespace ZE
 
 		static Int32 lastMaxLength = 100000;
 
-		if (mouseInside && MainUIState.mouseDown == EButtonState::BUTTON_DOWN)
+		if (mouseInside && MainUIState.mouseDown == EButtonState::BUTTON_DOWN) // Set this as an active if clicked
 		{
 			if (MainUIState.activeItem.id != _id)
 			{
 				// Set Main UI State to use this
-				StringHelper::NumberToString(number, MainUIState.textTempBuffer, TEXT_TEMP_LENGTH, asInt);
 				MainUIState.lastTextInput.id = _id;
 				MainUIState.textInputBuffer = MainUIState.textTempBuffer;
 				MainUIState.textInputCurrentPos = TextLength(MainUIState.textTempBuffer);
@@ -1076,15 +1075,48 @@ namespace ZE
 				MainUIState.textInputCurrentPos = MainUIState.textInputScrollPos + style.fontStyle.font->calculatePositionAtLength(MainUIState.textTempBuffer + MainUIState.textInputScrollPos * sizeof(UIChar), MainUIState.mouseX - textRect.m_pos.x, style.fontStyle.fontScale);
 			}
 			MainUIState.activeItem.id = _id;
+
+			if (MainUIState.lastActiveItem.id == -1)
+			{
+				StringHelper::NumberToString(number, MainUIState.textTempBuffer, TEXT_TEMP_LENGTH, asInt);
+				MainUIState.lastActiveItem.id = _id;
+			}
+			else if (MainUIState.lastActiveItem.id != _id)
+			{
+				StringHelper::NumberToString(number, charBuffer, 256, asInt);
+			}
+		}
+		else if (MainUIState.activeItem.id == _id) // when this active
+		{
+			if (MainUIState.lastActiveItem.id == -1)
+			{
+				StringHelper::NumberToString(number, MainUIState.textTempBuffer, TEXT_TEMP_LENGTH, asInt);
+				MainUIState.lastActiveItem.id = _id;
+			}
+			else if (MainUIState.lastActiveItem.id != _id)
+			{
+				StringHelper::NumberToString(number, charBuffer, 256, asInt);
+			}
+
+			if (mouseInside && MainUIState.hotItem.id != _id)
+			{
+				MainUIState.hotItem.id = _id;
+			}
+		}
+		else if (MainUIState.lastActiveItem.id == _id && MainUIState.activeItem.id != _id) // This was active and then not active, update the value
+		{
+			MainUIState.lastActiveItem.id = -1;
+			result = StringHelper::StringToNumber(MainUIState.textTempBuffer);
+			StringHelper::NumberToString(result, charBuffer, 256, asInt);
 		}
 		else if (mouseInside && MainUIState.hotItem.id != _id)
 		{
 			MainUIState.hotItem.id = _id;
+			StringHelper::NumberToString(number, charBuffer, 256, asInt);
 		}
 		else if (!mouseInside && MainUIState.hotItem.id == _id)
 		{
 			MainUIState.hotItem.id = -1;
-			result = StringHelper::StringToNumber(MainUIState.textTempBuffer);
 			StringHelper::NumberToString(number, charBuffer, 256, asInt);
 		}
 		else
@@ -1147,6 +1179,45 @@ namespace ZE
 		}
 
 		return result;
+	}
+
+	void UI::DoVector2Input(Int32 _id, const UIRect& rect, Float32* vec2, const UITextInputStyle& style /*= DefaultTextInputStyle*/, bool asInt /*= false*/)
+	{
+		const unsigned int nCount = 2;
+		float elementWidth = rect.m_dimension.x / nCount ;
+		UIRect elementRect = rect;
+		elementRect.m_dimension.x = elementWidth - 5.0f;
+		for (unsigned int i = 0; i < nCount; i++)
+		{
+			elementRect.m_pos.x = rect.m_pos.x + i * elementWidth;
+			vec2[i] = DoNumberInput(_id + i, elementRect, vec2[i], style, asInt);
+		}
+	}
+
+	void UI::DoVector3Input(Int32 _id, const UIRect& rect, Float32* vec3, const UITextInputStyle& style /*= DefaultTextInputStyle*/, bool asInt /*= false*/)
+	{
+		const unsigned int nCount = 3;
+		float elementWidth = rect.m_dimension.x / nCount;
+		UIRect elementRect = rect;
+		elementRect.m_dimension.x = elementWidth - 5.0f;
+		for (unsigned int i = 0; i < nCount; i++)
+		{
+			elementRect.m_pos.x = rect.m_pos.x + i * elementWidth;
+			vec3[i] = DoNumberInput(_id + i, elementRect, vec3[i], style, asInt);
+		}
+	}
+
+	void UI::DoVector4Input(Int32 _id, const UIRect& rect, Float32* vec4, const UITextInputStyle& style /*= DefaultTextInputStyle*/, bool asInt /*= false*/)
+	{
+		const unsigned int nCount = 4;
+		float elementWidth = rect.m_dimension.x / nCount;
+		UIRect elementRect = rect;
+		elementRect.m_dimension.x = elementWidth - 5.0f;
+		for (unsigned int i = 0; i < nCount; i++)
+		{
+			elementRect.m_pos.x = rect.m_pos.x + i * elementWidth;
+			vec4[i] = DoNumberInput(_id + i, elementRect, vec4[i], style, asInt);
+		}
 	}
 
 	void UI::DrawTextInPos(Int32 _id, UIVector2& pos, const UIChar* text, const UIVector4& fillColor, UIFont* font, Float32 scale)
