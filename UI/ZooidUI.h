@@ -6,6 +6,14 @@
 
 namespace ZE
 {
+	// Utility Functions
+
+	// Hash Compute for ID generator.
+	// CRC32 Implementation with some modification
+	UInt32 ComputeHashString(const UIChar* data, UInt32 dataSize, UInt32 seed = 0);
+	UInt32 ComputeHashData(void* data, UInt32 dataSize, UInt32 seed = 0);
+	UInt32 ComputeHashPointer(const void* pData, UInt32 seed = 0);
+
 	// Forward Declaration
 	class UIRenderer;
 	class UIDrawer;
@@ -14,8 +22,7 @@ namespace ZE
 
 	struct UI_ID
 	{
-		Int32 owner = -1;
-		Int32 id = -1;
+		UInt32 id = 0;
 	};
 
 	enum EButtonState : UInt8
@@ -471,8 +478,13 @@ namespace ZE
 		extern UITextInputStyle DefaultTextInputStyle;
 		extern UIFontStyle DefaultFontStyle;
 
+		// ID Stack
+		extern UIStack<UInt32> StackIDs;
+
 		// Getter
 		UIState* GetUIState();
+		UInt32 GetUIIDFromString(const UIChar* textData, UInt32 length = 255);
+		UInt32 GetUIIDFromPointer(const void* pData);
 
 		// Function
 		void Init(Int32 width, Int32 height);
@@ -501,53 +513,56 @@ namespace ZE
 		// UI Component
 
 		// Button
-		bool DoButton(Int32 _id, UIRect& rect, const UIButtonStyle& buttonStyle = DefaultButtonStyle);
+		bool DoButton(const UIChar* label, UIRect& rect, const UIButtonStyle& buttonStyle = DefaultButtonStyle);
 		
 		// Return True if Checked
-		bool DoCheckBox(Int32 _id, const UIVector2& pos, const UIChar* text, bool bChecked, const UIButtonStyle& checkBoxStyle = DefaultCheckBoxStyle);
+		bool DoCheckBox(const UIVector2& pos, const UIChar* text, bool bChecked, const UIButtonStyle& checkBoxStyle = DefaultCheckBoxStyle);
 
-		// Return Selected Id if Checked
-		Int32 DoRadioButton(Int32 _id, const UIVector2& pos, const UIChar* text, Int32 _selectedId, const UIButtonStyle& checkBoxStyle = DefaultRadioBtnStyle);
+		// Single Radio button checked if _buttonId == _selectionId
+		void DoRadioButton(Int32 _buttonId, const UIVector2& pos, const UIChar* text, Int32* _selectedId, const UIButtonStyle& checkBoxStyle = DefaultRadioBtnStyle);
+
+		// Do collection of radio buttons based on textArray
+		void DoRadioButtons(const UIVector2& startPos, const UIChar** textArray, UInt32 textArrayLen, Int32* _selectionId, const UIButtonStyle& radioButtonStyle = DefaultRadioBtnStyle);
 
 		// Panel
-		void DoPanel(Int32 _id, const UIRect& panelRect, const UIChar* text, Float32 padding, UIVector2& contentPos, bool& bClosed, const UIPanelStyle& style = DefaultPanelStyle);
+		void DoPanel(const UIRect& panelRect, const UIChar* text, Float32 padding, UIVector2& contentPos, bool& bClosed, const UIPanelStyle& style = DefaultPanelStyle);
 		
 		// Draggable Panel
-		void DoDragablePanel(Int32 _id, UIRect& panelRect, const UIChar* text, Float32 padding, UIVector2& contentPos, const UIPanelStyle& style = DefaultPanelStyle);
+		void DoDragablePanel(UIRect& panelRect, const UIChar* text, Float32 padding, UIVector2& contentPos, const UIPanelStyle& style = DefaultPanelStyle);
 		
 		// Slider
-		Float32 DoSlider(Int32 _id, const UIRect& rect, Float32 percent, const UISliderStyle& sliderStyle = DefaultSliderStyle);
+		void DoSlider(const UIRect& rect, Float32* percent, const UISliderStyle& sliderStyle = DefaultSliderStyle);
 
 		// DropDown
-		Int32 DoDropDown(Int32 _id, const UIRect& rect, Int32 selectedIdx, const UIChar** textOptions, Int32 optionCount, const UIDropdownStyle& style = DefaultDropdownStyle);
+		void DoDropDown(const UIRect& rect, Int32* selectedIdx, const UIChar** textOptions, Int32 optionCount, const UIDropdownStyle& style = DefaultDropdownStyle);
 
 		// Text Input
-		void DoTextInput(Int32 _id, const UIRect& rect, UIChar* bufferChar, Int32 bufferCount, const UITextInputStyle& style = DefaultTextInputStyle);
+		void DoTextInput(const UIRect& rect, UIChar* bufferChar, Int32 bufferCount, const UITextInputStyle& style = DefaultTextInputStyle);
 		
-		// Button Stepper : This will occupy 3 ids. the next id to be used after this call should be _id + 3
-		Float32 DoNumberStepper(Int32 _id, const UIRect& rect, Float32 number, Float32 step, bool asInt = false, const UIFontStyle& textStyle = DefaultFontStyle, const UIButtonStyle& buttonStyle = DefaultButtonStyle);
+		// Button Stepper
+		void DoNumberStepper(const UIRect& rect, Float32* number, Float32 step, bool asInt = false, const UIFontStyle& textStyle = DefaultFontStyle, const UIButtonStyle& buttonStyle = DefaultButtonStyle);
 
 		// Number Text Input
-		Float32 DoNumberInput(Int32 _id, const UIRect& rect, Float32 number, const UITextInputStyle& style = DefaultTextInputStyle, bool asInt = false);
+		void DoNumberInput(const UIRect& rect, Float32* number, const UITextInputStyle& style = DefaultTextInputStyle, bool asInt = false);
 
 		// Vector2 input. This will use 2 ids.
-		void DoVector2Input(Int32 _id, const UIRect& rect, Float32* vec2, const UITextInputStyle& style = DefaultTextInputStyle, bool asInt = false);
+		void DoVector2Input(const UIRect& rect, Float32* vec2, const UITextInputStyle& style = DefaultTextInputStyle, bool asInt = false);
 
 		// Vector3 input. This will use 3 ids
-		void DoVector3Input(Int32 _id, const UIRect& rect, Float32* vec3, const UITextInputStyle& style = DefaultTextInputStyle, bool asInt = false);
+		void DoVector3Input(const UIRect& rect, Float32* vec3, const UITextInputStyle& style = DefaultTextInputStyle, bool asInt = false);
 
 		// Vector4 input. This will use 4 ids
-		void DoVector4Input(Int32 _id, const UIRect& rect, Float32* vec4, const UITextInputStyle& style = DefaultTextInputStyle, bool asInt = false);
+		void DoVector4Input(const UIRect& rect, Float32* vec4, const UITextInputStyle& style = DefaultTextInputStyle, bool asInt = false);
 
 		// =================================================
 
-		void DrawTextInPos(Int32 _id, UIVector2& pos, const UIChar* text, const UIVector4& fillColor, UIFont* font = DefaultFont, Float32 scale = 1.0f);
-		void DrawTextInRect(Int32 _id, const UIRect& rect, const UIChar* text, UIVector4& fillColor, ETextAlign textAlign = TEXT_LEFT, ETextVerticalAlign vAlign = TEXT_V_CENTER, Float32 scale = 1.0f, UIFont* font = DefaultFont);
-		void DrawMultiLineText(Int32 _id, const UIRect& rect, const UIChar* text, const UIVector4& fillColor, ETextAlign textAlign = TEXT_LEFT, ETextVerticalAlign vAlign = TEXT_V_TOP, Float32 scale = 1.0f, UIFont* font = DefaultFont);
+		void DrawTextInPos(UIVector2& pos, const UIChar* text, const UIVector4& fillColor, UIFont* font = DefaultFont, Float32 scale = 1.0f);
+		void DrawTextInRect(const UIRect& rect, const UIChar* text, UIVector4& fillColor, ETextAlign textAlign = TEXT_LEFT, ETextVerticalAlign vAlign = TEXT_V_CENTER, Float32 scale = 1.0f, UIFont* font = DefaultFont);
+		void DrawMultiLineText(const UIRect& rect, const UIChar* text, const UIVector4& fillColor, ETextAlign textAlign = TEXT_LEFT, ETextVerticalAlign vAlign = TEXT_V_TOP, Float32 scale = 1.0f, UIFont* font = DefaultFont);
 
-		void DrawTexture(Int32 _id, const UIVector2& pos, UITexture* texture, const UIVector4& colorMultiplier, ETextureScale textureScale = SCALE_IMAGE, const UIVector4& scaleOffset = UIVector4(0.0f));
+		void DrawTexture(const UIVector2& pos, UITexture* texture, const UIVector4& colorMultiplier, ETextureScale textureScale = SCALE_IMAGE, const UIVector4& scaleOffset = UIVector4(0.0f));
 
-		void DrawTexture(Int32 _id, const UIRect& rect, UITexture* texture, const UIVector4& colorMultiplier, ETextureScale textureScale = SCALE_IMAGE, const UIVector4& scaleOffset = UIVector4(0.0f));
+		void DrawTexture(const UIRect& rect, UITexture* texture, const UIVector4& colorMultiplier, ETextureScale textureScale = SCALE_IMAGE, const UIVector4& scaleOffset = UIVector4(0.0f));
 
 		void ProcessDrawList();
 

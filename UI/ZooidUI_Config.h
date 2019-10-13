@@ -10,6 +10,9 @@
 // Array Type that use in this code. Change to other type if needed
 #define UIArray std::vector
 
+// Stack Type that use in this code
+#define UIStack std::vector
+
 // HasMap type that use in this code. Change to other type if needed
 #define UIHashMap std::unordered_map
 
