@@ -442,7 +442,21 @@ namespace ZE
 		}
 	}
 
-	bool UI::DoButton(const UIChar* label, UIRect& rect, const UIButtonStyle& buttonStyle)
+	bool UI::DoButton(const UIChar* label, const UIButtonStyle& buttonStyle /*= DefaultButtonStyle*/)
+	{
+		static UIRect rect;
+		rect = MainUIState.drawPosDimension;
+		rect.m_dimension.x = buttonStyle.fontStyle.font->calculateTextLength(label, buttonStyle.fontStyle.fontScale) + 60.0f;
+		rect.m_dimension.y = buttonStyle.fontStyle.font->calculateTextHeight(buttonStyle.fontStyle.fontScale) + 20.0f;
+
+		bool result = DoButtonEx(label, rect, buttonStyle);
+
+		MainUIState.drawPosDimension.m_pos = MainUIState.drawPosDimension.m_pos + MainUIState.drawDirection * rect.m_dimension + UIVector2(5.0f) * MainUIState.drawDirection;
+
+		return result;
+	}
+
+	bool UI::DoButtonEx(const UIChar* label, UIRect& rect, const UIButtonStyle& buttonStyle)
 	{
 		bool mouseInside = rect.isContain(UIVector2{ MainUIState.mouseX, MainUIState.mouseY });
 		bool bPressed = false;
@@ -492,13 +506,22 @@ namespace ZE
 		return bPressed;
 	}
 
-	bool UI::DoCheckBox(const UIVector2& pos, const UIChar* text, bool bChecked, const UIButtonStyle& checkBoxStyle)
+	bool UI::DoCheckBox(const UIChar* text, bool bChecked, const UIButtonStyle& checkBoxStyle /*= DefaultCheckBoxStyle*/)
+	{
+		static UIRect rect;
+		rect = MainUIState.drawPosDimension;
+
+		bool result = DoCheckBoxEx(MainUIState.drawPosDimension.m_pos, text, bChecked, rect, checkBoxStyle);
+
+		MainUIState.drawPosDimension.m_pos = MainUIState.drawPosDimension.m_pos + MainUIState.drawDirection * rect.m_dimension + UIVector2(5.0f) * MainUIState.drawDirection;
+
+		return result;
+	}
+
+	bool UI::DoCheckBoxEx(const UIVector2& pos, const UIChar* text, bool bChecked, UIRect& rect, const UIButtonStyle& checkBoxStyle)
 	{
 		UIFont* font = checkBoxStyle.fontStyle.font ? checkBoxStyle.fontStyle.font : DefaultFont;
-		UIRect rect;
 		rect.m_pos = pos;
-		rect.m_dimension.x = 0;
-		rect.m_dimension.y = 0;
 
 		UInt32 _id = GetUIIDFromString(text);
 		UIStyle style;
@@ -705,7 +728,16 @@ namespace ZE
 		}
 	}
 
-	void UI::DoRadioButtons(const UIVector2& startPos, const UIChar** textArray, UInt32 textArrayLen, Int32* _selectionId, const UIButtonStyle& radioButtonStyle /*= DefaultRadioBtnStyle*/)
+	void UI::DoRadioButtons(const UIChar** textArray, UInt32 textArrayLen, Int32* _selectionId, const UIButtonStyle& radioButtonStyle /*= DefaultRadioBtnStyle*/)
+	{
+		DoRadioButtonsEx(MainUIState.drawPosDimension.m_pos, textArray, textArrayLen, _selectionId, radioButtonStyle);
+
+		UIFont* font = radioButtonStyle.fontStyle.font ? radioButtonStyle.fontStyle.font : DefaultFont;
+		Float32 height = font->calculateTextHeight(radioButtonStyle.fontStyle.fontScale) + 5.0f;
+		MainUIState.drawPosDimension.m_pos = MainUIState.drawPosDimension.m_pos + MainUIState.drawDirection * UIVector2(100.0f, height * textArrayLen) + UIVector2(5.0f) * MainUIState.drawDirection;
+	}
+
+	void UI::DoRadioButtonsEx(const UIVector2& startPos, const UIChar** textArray, UInt32 textArrayLen, Int32* _selectionId, const UIButtonStyle& radioButtonStyle /*= DefaultRadioBtnStyle*/)
 	{
 		UInt32 id = GetUIIDFromPointer(_selectionId);
 
@@ -880,7 +912,19 @@ namespace ZE
 		contentPos.y = panelRect.m_pos.y + style.headerHeight + padding;
 	}
 
-	void UI::DoSlider(const UIRect& rect, Float32* percent, const UISliderStyle& sliderStyle)
+	void UI::DoSlider(Float32* percent, const UISliderStyle& sliderStyle /*= DefaultSliderStyle*/)
+	{
+		static UIRect rect;
+		rect = MainUIState.drawPosDimension;
+		rect.m_dimension.x = 200.0f;
+		rect.m_dimension.y = 20.0f;
+
+		DoSliderEx(rect, percent, sliderStyle);
+
+		MainUIState.drawPosDimension.m_pos = MainUIState.drawPosDimension.m_pos + MainUIState.drawDirection * rect.m_dimension + UIVector2(5.0f) * MainUIState.drawDirection;
+	}
+
+	void UI::DoSliderEx(const UIRect& rect, Float32* percent, const UISliderStyle& sliderStyle)
 	{
 		bool mouseInside = rect.isContain(UIVector2{ MainUIState.mouseX, MainUIState.mouseY });
 		UInt32 _id = GetUIIDFromPointer(percent);
@@ -933,7 +977,19 @@ namespace ZE
 		}
 	}
 
-	void UI::DoDropDown(const UIRect& rect, Int32* selectedIdx, const UIChar** textOptions, Int32 optionCount, const UIDropdownStyle& style /*= DefaultDropdownStyle*/)
+	void UI::DoDropDown(Int32* selectedIdx, const UIChar** textOptions, Int32 optionCount, const UIDropdownStyle& style /*= DefaultDropdownStyle*/)
+	{
+		static UIRect rect;
+		rect = MainUIState.drawPosDimension;
+		rect.m_dimension.x = style.dropdownButtonStyle.fontStyle.font->calculateTextLength(textOptions[*selectedIdx], style.dropdownButtonStyle.fontStyle.fontScale) + 60.0f;
+		rect.m_dimension.y = style.dropdownButtonStyle.fontStyle.font->calculateTextHeight(style.dropdownButtonStyle.fontStyle.fontScale) + 20.0f;
+
+		DoDropDownEx(rect, selectedIdx, textOptions, optionCount, style);
+
+		MainUIState.drawPosDimension.m_pos = MainUIState.drawPosDimension.m_pos + MainUIState.drawDirection * rect.m_dimension + UIVector2(5.0f) * MainUIState.drawDirection;
+	}
+
+	void UI::DoDropDownEx(const UIRect& rect, Int32* selectedIdx, const UIChar** textOptions, Int32 optionCount, const UIDropdownStyle& style /*= DefaultDropdownStyle*/)
 	{
 		bool bPressed = false;
 		UInt32 _id = GetUIIDFromPointer(selectedIdx);
@@ -1052,7 +1108,19 @@ namespace ZE
 		}
 	}
 
-	void UI::DoTextInput(const UIRect& rect, UIChar* bufferChar, Int32 bufferCount, const UITextInputStyle& style /*= DefaultTextInputStyle*/)
+	void UI::DoTextInput(UIChar* bufferChar, Int32 bufferCount, const UITextInputStyle& style /*= DefaultTextInputStyle*/)
+	{
+		static UIRect rect;
+		rect = MainUIState.drawPosDimension;
+		rect.m_dimension.x = rect.m_dimension.x;
+		rect.m_dimension.y = style.fontStyle.font->calculateTextHeight(style.fontStyle.fontScale) + 15.0f;
+
+		DoTextInputEx(rect, bufferChar, bufferCount, style);
+
+		MainUIState.drawPosDimension.m_pos = MainUIState.drawPosDimension.m_pos + MainUIState.drawDirection * rect.m_dimension + UIVector2(5.0f) * MainUIState.drawDirection;
+	}
+
+	void UI::DoTextInputEx(const UIRect& rect, UIChar* bufferChar, Int32 bufferCount, const UITextInputStyle& style /*= DefaultTextInputStyle*/)
 	{
 		bool mouseInside = rect.isContain(UIVector2(MainUIState.mouseX, MainUIState.mouseY));
 		UIRect textRect(UIVector2(rect.m_pos.x + 10, rect.m_pos.y), UIVector2(rect.m_dimension.x - 20, rect.m_dimension.y));
@@ -1146,7 +1214,18 @@ namespace ZE
 		}
 	}
 
-	void UI::DoNumberStepper(const UIRect& rect, Float32* number, Float32 step, bool asInt /*= false*/, const UIFontStyle& textStyle /*= DefaultFontStyle*/, const UIButtonStyle& buttonStyle /*= DefaultButtonStyle*/)
+	void UI::DoNumberStepper(Float32* number, Float32 step, bool asInt /*= false*/, const UIFontStyle& textStyle /*= DefaultFontStyle*/, const UIButtonStyle& buttonStyle /*= DefaultButtonStyle*/)
+	{
+		static UIRect rect;
+		rect = MainUIState.drawPosDimension;
+		rect.m_dimension.y = textStyle.font->calculateTextHeight(textStyle.fontScale) + 20.0f;
+
+		DoNumberStepperEx(rect, number, step, asInt, textStyle);
+
+		MainUIState.drawPosDimension.m_pos = MainUIState.drawPosDimension.m_pos + MainUIState.drawDirection * rect.m_dimension + UIVector2(5.0f) * MainUIState.drawDirection;
+	}
+
+	void UI::DoNumberStepperEx(const UIRect& rect, Float32* number, Float32 step, bool asInt /*= false*/, const UIFontStyle& textStyle /*= DefaultFontStyle*/, const UIButtonStyle& buttonStyle /*= DefaultButtonStyle*/)
 	{
 		UIChar charBuffer[256];
 		StringHelper::NumberToString(*number, charBuffer, 256, asInt);
@@ -1160,13 +1239,13 @@ namespace ZE
 		buttonRect.m_dimension.x = 35.0f;
 		buttonRect.m_dimension.y = rect.m_dimension.y;
 		buttonRect.m_pos = rect.m_pos;
-		if (DoButton("<", buttonRect, buttonStyle))
+		if (DoButtonEx("<", buttonRect, buttonStyle))
 		{
 			*number -= step;
 		}
 
 		buttonRect.m_pos.x = rect.m_pos.x + rect.m_dimension.x - buttonRect.m_dimension.x;
-		if (DoButton(">", buttonRect, buttonStyle))
+		if (DoButtonEx(">", buttonRect, buttonStyle))
 		{
 			*number += step;
 		}
@@ -1174,7 +1253,18 @@ namespace ZE
 		StackIDs.pop_back();
 	}
 
-	void UI::DoNumberInput(const UIRect& rect, Float32* number, const UITextInputStyle& style /*= DefaultTextInputStyle*/, bool asInt /*= false*/)
+	void UI::DoNumberInput(Float32* number, const UITextInputStyle& style /*= DefaultTextInputStyle*/, bool asInt /*= false*/)
+	{
+		static UIRect rect;
+		rect = MainUIState.drawPosDimension;
+		rect.m_dimension.y = style.fontStyle.font->calculateTextHeight(style.fontStyle.fontScale) + 20.0f;
+
+		DoNumberInputEx(rect, number, style, asInt);
+
+		MainUIState.drawPosDimension.m_pos = MainUIState.drawPosDimension.m_pos + MainUIState.drawDirection * rect.m_dimension + UIVector2(5.0f) * MainUIState.drawDirection;
+	}
+
+	void UI::DoNumberInputEx(const UIRect& rect, Float32* number, const UITextInputStyle& style /*= DefaultTextInputStyle*/, bool asInt /*= false*/)
 	{
 		static UIChar charBuffer[256];
 		UInt32 _id = GetUIIDFromPointer(number);
@@ -1309,7 +1399,18 @@ namespace ZE
 		}
 	}
 
-	void UI::DoVector2Input(const UIRect& rect, Float32* vec2, const UITextInputStyle& style /*= DefaultTextInputStyle*/, bool asInt /*= false*/)
+	void UI::DoVector2Input(Float32* vec2, const UITextInputStyle& style /*= DefaultTextInputStyle*/, bool asInt /*= false*/)
+	{
+		static UIRect rect;
+		rect = MainUIState.drawPosDimension;
+		rect.m_dimension.y = style.fontStyle.font->calculateTextHeight(style.fontStyle.fontScale) + 20.0f;
+
+		DoVector2InputEx(rect, vec2, style, asInt);
+
+		MainUIState.drawPosDimension.m_pos = MainUIState.drawPosDimension.m_pos + MainUIState.drawDirection * rect.m_dimension + UIVector2(5.0f) * MainUIState.drawDirection;
+	}
+
+	void UI::DoVector2InputEx(const UIRect& rect, Float32* vec2, const UITextInputStyle& style /*= DefaultTextInputStyle*/, bool asInt /*= false*/)
 	{
 		const unsigned int nCount = 2;
 		float elementWidth = rect.m_dimension.x / nCount ;
@@ -1318,11 +1419,22 @@ namespace ZE
 		for (unsigned int i = 0; i < nCount; i++)
 		{
 			elementRect.m_pos.x = rect.m_pos.x + i * elementWidth;
-			DoNumberInput(elementRect, &vec2[i], style, asInt);
+			DoNumberInputEx(elementRect, &vec2[i], style, asInt);
 		}
 	}
 
-	void UI::DoVector3Input(const UIRect& rect, Float32* vec3, const UITextInputStyle& style /*= DefaultTextInputStyle*/, bool asInt /*= false*/)
+	void UI::DoVector3Input(Float32* vec3, const UITextInputStyle& style /*= DefaultTextInputStyle*/, bool asInt /*= false*/)
+	{
+		static UIRect rect;
+		rect = MainUIState.drawPosDimension;
+		rect.m_dimension.y = style.fontStyle.font->calculateTextHeight(style.fontStyle.fontScale) + 20.0f;
+
+		DoVector3InputEx(rect, vec3, style, asInt);
+
+		MainUIState.drawPosDimension.m_pos = MainUIState.drawPosDimension.m_pos + MainUIState.drawDirection * rect.m_dimension + UIVector2(5.0f) * MainUIState.drawDirection;
+	}
+
+	void UI::DoVector3InputEx(const UIRect& rect, Float32* vec3, const UITextInputStyle& style /*= DefaultTextInputStyle*/, bool asInt /*= false*/)
 	{
 		const unsigned int nCount = 3;
 		float elementWidth = rect.m_dimension.x / nCount;
@@ -1331,11 +1443,22 @@ namespace ZE
 		for (unsigned int i = 0; i < nCount; i++)
 		{
 			elementRect.m_pos.x = rect.m_pos.x + i * elementWidth;
-			DoNumberInput(elementRect, &vec3[i], style, asInt);
+			DoNumberInputEx(elementRect, &vec3[i], style, asInt);
 		}
 	}
 
-	void UI::DoVector4Input(const UIRect& rect, Float32* vec4, const UITextInputStyle& style /*= DefaultTextInputStyle*/, bool asInt /*= false*/)
+	void UI::DoVector4Input(Float32* vec4, const UITextInputStyle& style /*= DefaultTextInputStyle*/, bool asInt /*= false*/)
+	{
+		static UIRect rect;
+		rect = MainUIState.drawPosDimension;
+		rect.m_dimension.y = style.fontStyle.font->calculateTextHeight(style.fontStyle.fontScale) + 20.0f;
+
+		DoVector4InputEx(rect, vec4, style, asInt);
+
+		MainUIState.drawPosDimension.m_pos = MainUIState.drawPosDimension.m_pos + MainUIState.drawDirection * rect.m_dimension + UIVector2(5.0f) * MainUIState.drawDirection;
+	}
+
+	void UI::DoVector4InputEx(const UIRect& rect, Float32* vec4, const UITextInputStyle& style /*= DefaultTextInputStyle*/, bool asInt /*= false*/)
 	{
 		const unsigned int nCount = 4;
 		float elementWidth = rect.m_dimension.x / nCount;
@@ -1344,8 +1467,94 @@ namespace ZE
 		for (unsigned int i = 0; i < nCount; i++)
 		{
 			elementRect.m_pos.x = rect.m_pos.x + i * elementWidth;
-			DoNumberInput(elementRect, &vec4[i], style, asInt);
+			DoNumberInputEx(elementRect, &vec4[i], style, asInt);
 		}
+	}
+
+	bool UI::BeginPanel(const UIChar* panelLabel, const UIRect initialRect, const UIPanelStyle& style /*= DefaultPanelStyle*/)
+	{
+		UInt32 _id = GetUIIDFromString(panelLabel);
+		
+		StackIDs.push_back(_id);
+
+		if (!(HashMapHas(MainUIState.panelStates, _id)))
+		{
+			UIPanelState panelState;
+			panelState.posAndDimension = initialRect;
+			MainUIState.panelStates[_id] = panelState;
+		}
+
+		UIPanelState& panelState = MainUIState.panelStates[_id];
+
+		UIRect headerRect;
+		headerRect.m_pos = panelState.posAndDimension.m_pos + UIVector2{ 10.0f, 0.0f };
+		headerRect.m_dimension.x = panelState.posAndDimension.m_dimension.x - 20.0f;
+		headerRect.m_dimension.y = style.headerHeight;
+
+		bool bJustActive = false;
+		bool mouseInside = headerRect.isContain(UIVector2{ MainUIState.mouseX, MainUIState.mouseY });
+		if ((MainUIState.activeItem.id == _id || mouseInside) && MainUIState.mouseDown == EButtonState::BUTTON_DOWN)
+		{
+			bJustActive = MainUIState.activeItem.id != _id;
+			MainUIState.activeItem.id = _id;
+		}
+		else if (mouseInside)
+		{
+			MainUIState.hotItem.id = _id;
+			if (MainUIState.activeItem.id == _id) { MainUIState.activeItem.id = 0; }
+		}
+		else
+		{
+			if (MainUIState.hotItem.id == _id) { MainUIState.hotItem.id = 0; }
+			if (MainUIState.activeItem.id == _id) { MainUIState.activeItem.id = 0; }
+		}
+
+		if (MainUIState.activeItem.id == _id && !bJustActive)
+		{
+			UIVector2 delta{ MainUIState.mouseDeltaX, MainUIState.mouseDeltaY };
+			panelState.posAndDimension.m_pos = panelState.posAndDimension.m_pos + delta;
+			headerRect.m_pos = headerRect.m_pos + delta;
+		}
+
+		if (style.panel.texture)
+		{
+			MainUIState.drawer->DrawTexture(panelState.posAndDimension, style.panel.texture, style.panel.fillColor, style.panel.textureScale, style.panel.textureOffset);
+		}
+		else
+		{
+			MainUIState.drawer->DrawRect(panelState.posAndDimension, style.panel.fillColor);
+		}
+
+		UIFont* font = style.headerFontStyle.font ? style.headerFontStyle.font : DefaultFont;
+		DrawTextInRect(headerRect, panelLabel, UIVector4(1.0f), TEXT_LEFT, TEXT_V_CENTER, style.headerFontStyle.fontScale, font);
+
+		MainUIState.drawPosDimensionStack.push_back(MainUIState.drawPosDimension);
+
+		MainUIState.drawPosDimension = panelState.posAndDimension;
+		MainUIState.drawPosDimension.m_pos.x += 10.0f;
+		MainUIState.drawPosDimension.m_pos.y += style.headerHeight + 10.0f;
+		MainUIState.drawPosDimension.m_dimension.x -= 20.0f;
+
+		MainUIState.drawDirectionStack.push_back(MainUIState.drawDirection);
+		MainUIState.drawDirection = UIVector2(0.0f, 1.0f);
+
+		return true;
+	}
+
+	void UI::EndPanel()
+	{
+		UInt32 parentId = StackIDs.back();
+		UIPanelState& panelState = MainUIState.panelStates[parentId]; 
+		panelState.posAndDimension.m_dimension.y = MainUIState.drawPosDimension.m_pos.y - panelState.posAndDimension.m_pos.y + 10.0f;
+
+		UIRect newRect = MainUIState.drawPosDimensionStack.back();
+		MainUIState.drawPosDimension = newRect;
+		MainUIState.drawPosDimensionStack.pop_back();
+
+		MainUIState.drawDirection = MainUIState.drawDirectionStack.back();
+		MainUIState.drawDirectionStack.pop_back();
+
+		StackIDs.pop_back();
 	}
 
 	void UI::DrawTextInPos(UIVector2& pos, const UIChar* text, const UIVector4& fillColor, UIFont* font, Float32 scale)
@@ -1383,7 +1592,42 @@ namespace ZE
 		MainUIState.drawer->DrawText(actualPos, fillColor, font, text, scale, false, 0.0f, TEXT_LEFT, rect.m_dimension);
 	}
 
-	void UI::DrawMultiLineText(const UIRect& rect, const UIChar* text, const UIVector4& fillColor, ETextAlign textAlign /*= TEXT_V_CENTER*/, ETextVerticalAlign vAlign /*= TEXT_V_TOP*/, Float32 scale /*= 1.0f*/, UIFont* font)
+	void UI::DrawMultiLineText(const UIChar* text, const UIVector4& fillColor, ETextAlign textAlign /*= TEXT_LEFT*/, ETextVerticalAlign vAlign /*= TEXT_V_TOP*/, Float32 scale /*= 1.0f*/, UIFont* font /*= DefaultFont*/)
+	{
+		UIVector2 textDimension;
+		textDimension.x = MainUIState.drawPosDimension.m_dimension.x;
+		textDimension.y = font->calculateTextHeight(scale);
+
+		UIVector2 actualPos = MainUIState.drawPosDimension.m_pos;
+
+		switch (vAlign)
+		{
+		case ZE::TEXT_V_BOTTOM:
+			actualPos.y += (MainUIState.drawPosDimension.m_dimension.y - textDimension.y);
+			break;
+		case ZE::TEXT_V_CENTER:
+			actualPos.y += (MainUIState.drawPosDimension.m_dimension.y - textDimension.y) / 2;
+			break;
+		}
+
+		Int32 lineCount = 0;
+		MainUIState.drawer->DrawText(actualPos, fillColor, font, text, scale, true, MainUIState.drawPosDimension.m_dimension.x, textAlign, MainUIState.drawPosDimension.m_dimension, &lineCount);
+
+		MainUIState.drawPosDimension.m_pos = MainUIState.drawPosDimension.m_pos + MainUIState.drawDirection * UIVector2(0.0f, lineCount * font->calculateTextHeight(scale)) + UIVector2(5.0f) * MainUIState.drawDirection;
+	}
+
+	void UI::DrawMultiLineText(const UIVector2& dimension, const UIChar* text, const UIVector4& fillColor, ETextAlign textAlign /*= TEXT_LEFT*/, ETextVerticalAlign vAlign /*= TEXT_V_TOP*/, Float32 scale /*= 1.0f*/, UIFont* font /*= DefaultFont*/)
+	{
+		static UIRect rect;
+		rect = MainUIState.drawPosDimension;
+		rect.m_dimension = dimension;
+
+		DrawMultiLineTextEx(rect, text, fillColor, textAlign, vAlign, scale, font);
+
+		MainUIState.drawPosDimension.m_pos = MainUIState.drawPosDimension.m_pos + MainUIState.drawDirection * rect.m_dimension + UIVector2(5.0f) * MainUIState.drawDirection;
+	}
+
+	void UI::DrawMultiLineTextEx(const UIRect& rect, const UIChar* text, const UIVector4& fillColor, ETextAlign textAlign /*= TEXT_V_CENTER*/, ETextVerticalAlign vAlign /*= TEXT_V_TOP*/, Float32 scale /*= 1.0f*/, UIFont* font)
 	{
 		UIVector2 textDimension;
 		textDimension.x = rect.m_dimension.x;
@@ -1404,7 +1648,25 @@ namespace ZE
 		MainUIState.drawer->DrawText(actualPos, fillColor, font, text, scale, true, rect.m_dimension.x, textAlign, rect.m_dimension);
 	}
 
-	void UI::DrawTexture(const UIVector2& pos, UITexture* texture, const UIVector4& colorMultiplier, ETextureScale textureScale, const UIVector4& scaleOffset)
+	void UI::DrawTexture(UITexture* texture, const UIVector4& colorMultiplier, ETextureScale textureScale /*= SCALE_IMAGE*/, const UIVector4& scaleOffset /*= UIVector4(0.0f)*/)
+	{
+		static UIRect rect;
+		rect = MainUIState.drawPosDimension;
+		rect.m_dimension.y = (Float32)texture->getHeight();
+		MainUIState.drawer->DrawTexture(rect, texture, colorMultiplier, textureScale, scaleOffset);
+		MainUIState.drawPosDimension.m_pos = MainUIState.drawPosDimension.m_pos + MainUIState.drawDirection * rect.m_dimension + UIVector2(5.0f) * MainUIState.drawDirection;
+	}
+
+	void UI::DrawTexture(const UIVector2& dimension, UITexture* texture, const UIVector4& colorMultiplier, ETextureScale textureScale /*= SCALE_IMAGE*/, const UIVector4& scaleOffset /*= UIVector4(0.0f)*/)
+	{
+		static UIRect rect;
+		rect = MainUIState.drawPosDimension;
+		rect.m_dimension = dimension;
+		MainUIState.drawer->DrawTexture(rect, texture, colorMultiplier, textureScale, scaleOffset);
+		MainUIState.drawPosDimension.m_pos = MainUIState.drawPosDimension.m_pos + MainUIState.drawDirection * rect.m_dimension + UIVector2(5.0f) * MainUIState.drawDirection;
+	}
+
+	void UI::DrawTextureInPos(const UIVector2& pos, UITexture* texture, const UIVector4& colorMultiplier, ETextureScale textureScale, const UIVector4& scaleOffset)
 	{
 		UIRect rect;
 		rect.m_pos = pos;
@@ -1427,7 +1689,7 @@ namespace ZE
 		return start + alpha * (next-start);
 	}
 
-	void UI::DrawTexture(const UIRect& rect, UITexture* texture, const UIVector4& colorMultiplier, ETextureScale textureScale, const UIVector4& scaleOffset)
+	void UI::DrawTextureInPos(const UIRect& rect, UITexture* texture, const UIVector4& colorMultiplier, ETextureScale textureScale, const UIVector4& scaleOffset)
 	{
 		MainUIState.drawer->DrawTexture(rect, texture, colorMultiplier, textureScale, scaleOffset);
 	}
@@ -1677,7 +1939,7 @@ namespace ZE
 
 	}
 
-	void UIDrawer::DrawText(UIVector2& pos, const UIVector4& fillColor, UIFont* font, const UIChar* text, Float32 scale /*= 1.0f*/, bool bWordWrap /*= false*/, Float32 maxWidth /*= 0*/, ETextAlign wrapTextAlign /*= TEXT_LEFT*/, const UIVector2& dim)
+	void UIDrawer::DrawText(UIVector2& pos, const UIVector4& fillColor, UIFont* font, const UIChar* text, Float32 scale /*= 1.0f*/, bool bWordWrap /*= false*/, Float32 maxWidth /*= 0*/, ETextAlign wrapTextAlign /*= TEXT_LEFT*/, const UIVector2& dim, Int32* lineCount)
 	{
 #if defined(ZUI_USE_FONT_INSTANCING) && !defined(ZUI_USE_SINGLE_TEXT_ONLY)
 		UIDrawItem* drawItem = m_currentDrawList->getTextureInstanceDrawItem(font->getTextureHandle());
@@ -1696,7 +1958,7 @@ namespace ZE
 		if (bWordWrap)
 		{
 #if defined(ZUI_USE_FONT_INSTANCING)
-			font->generateWrapTextInstanceBuffer(text, drawItem->m_instances, pos + UIVector2{ 0, 1.0f * font->calculateTextHeight(scale) }, scale, m_currentLayer * 0.5f + m_currentDepth, fillColor, maxWidth, wrapTextAlign);
+			font->generateWrapTextInstanceBuffer(text, drawItem->m_instances, pos + UIVector2{ 0, 1.0f * font->calculateTextHeight(scale) }, scale, m_currentLayer * 0.5f + m_currentDepth, fillColor, maxWidth, wrapTextAlign, lineCount);
 #else
 			font->generateWrapTextVertexBuffer(text, drawItem->m_vertices, pos + UIVector2{ 0, 1.0f * font->calculateTextHeight(scale) }, scale, m_currentLayer * 0.5f + m_currentDepth, fillColor, maxWidth, wrapTextAlign);
 #endif
@@ -1843,6 +2105,11 @@ namespace ZE
 	ZE::UIVector2 operator-(const UIVector2& v1, const UIVector2& v2)
 	{
 		return UIVector2{ v1.x - v2.x, v1.y - v2.y };
+	}
+
+	ZE::UIVector2 operator*(const UIVector2& v1, const UIVector2& v2)
+	{
+		return UIVector2{ v1.x * v2.x, v1.y * v2.y };
 	}
 
 	void CopyTexture(void* descMemory, Int32 width, Int32 height, Int32 targetX, Int32 targetY, void* srcMemory, Int32 srcWidth, Int32 srcHeight, size_t itemSize)
@@ -2174,13 +2441,14 @@ namespace ZE
 		}
 	}
 
-	void UIFont::generateWrapTextInstanceBuffer(const UIChar* text, UIArray<UIInstance>& result, const UIVector2 pos, Float32 scale, Float32 depth, UIVector4 color, Float32 maxWidth, ETextAlign textAlign)
+	void UIFont::generateWrapTextInstanceBuffer(const UIChar* text, UIArray<UIInstance>& result, const UIVector2 pos, Float32 scale, Float32 depth, UIVector4 color, Float32 maxWidth, ETextAlign textAlign, Int32* lineCount)
 	{
 		UIArray<UInt32> charIndices;
 		Float32 width;
 		Int32 count = 0;
 		Float32 x;
 		Float32 y = -pos.y;
+		if (lineCount) { *lineCount = 1; }
 
 		while (generateWrapTextBuffer(text + count, charIndices, scale, depth, maxWidth, width, count))
 		{
@@ -2211,6 +2479,7 @@ namespace ZE
 			}
 
 			y -= calculateTextHeight(scale);
+			if (lineCount) { (*lineCount)++; }
 			charIndices.clear();
 		}
 	}

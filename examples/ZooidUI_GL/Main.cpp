@@ -91,7 +91,6 @@ void windowFrameBufferSizeCallback(GLFWwindow* window, int width, int height)
 
 int main()
 {
-	ZE::UIState state;
 	ZE::GL_UIRenderer* renderer;
 
 	ZE::UI::Init(1000, 800);
@@ -109,20 +108,6 @@ int main()
 	bool bChecked = false;
 	ZE::Int32 selectedRadioButton = 0;
 	ZE::Float32 sliderPercent = 0.0;
-	bool bPanelClosed = false;
-
-	ZE::UIRect panelRect;
-	panelRect.m_pos = { 100, 100 };
-	panelRect.m_dimension = { 250, 575 };
-	panelRect.m_roundness = 10;
-
-	ZE::UIRect panel2Rect = panelRect;
-	panel2Rect.m_pos.x += 300;
-
-	ZE::UIRect panel3Rect = panel2Rect;
-	panel3Rect.m_pos.x += 300;
-	panel3Rect.m_dimension.y += 120;
-	panel3Rect.m_dimension.x += 100;
 
 	const char* radioTexts[5] = { "Radio Button 1", "Radio Button 2", "Radio Button 3", "Radio Button 4", "Radio Button 5" };
 	ZE::Float32 cpuTime = 0.0f;
@@ -131,44 +116,19 @@ int main()
 	ZE::Timer timer;
 
 	char buffer[256];
-
-	ZE::UIRect sliderRect;
-	sliderRect.m_dimension.x = panelRect.m_dimension.x - 50;
-	sliderRect.m_dimension.y = 20;
 	
-	// Dropdown attributes
-	ZE::UIRect dropDownRect = ZE::UIRect(ZE::UIVector2(0.0f, 0.0f), ZE::UIVector2(150, 32));
 	const char* dropdownText[5] = { "Option 1", "Option 2", "Option 3", "Option 4", "Option 5" };
 	ZE::Int32 dropdownIndex = 1;
-
-	ZE::UIVector2 contentPos;
-
-	ZE::UIRect buttonRect;
-	buttonRect.m_dimension = { 150, 40 };
-	buttonRect.m_roundness = 10.0f;
-
-	ZE::UIRect textInputRect;
-	textInputRect.m_dimension = { 200, 32 };
-
-	ZE::UIRect numberStepperRect;
-	numberStepperRect.m_dimension = { 150, 32 };
-
-	ZE::UIRect numberInputRect;
-	numberInputRect.m_dimension = { 150, 32 };
 
 	ZE::UIChar bufferInput[256];
 	bufferInput[0] = 0;
 
 	ZE::Float32 number = 1.0f;
 	ZE::Float32 number2 = 1.0f;
-
-	ZE::UIRect vecInputRect;
-	vecInputRect.m_dimension = { 230, 32 };
 	
 	ZE::Float32 vec2[2] = { 0.0f, 0.0f };
 	ZE::Float32 vec3[3] = { 0.0f, 0.0f, 0.0f };
 	ZE::Float32 vec4[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
-
 
 	while (!renderer->requestToClose())
 	{
@@ -192,98 +152,40 @@ int main()
 		sprintf_s(buffer, "FPS: %.1f", 1.0f / (totalTime / 1000.0f));
 		ZE::UI::DrawTextInPos(ZE::UIVector2{ 0.0f, 3.0f * ZE::UI::DefaultFont->calculateTextHeight(1.0f) }, buffer, ZE::UIVector4{ 1.0f });
 
- 		ZE::UI::DoDragablePanel(panelRect, "Test Panel...", 10, contentPos);
-
-		buttonRect.m_pos = contentPos;
-		if (ZE::UI::DoButton("Button", buttonRect))
+		if (ZE::UI::BeginPanel("Text Panel...", ZE::UIRect(ZE::UIVector2(100.0f, 100.f), ZE::UIVector2(250.0f, 500.0f))))
 		{
-			std::cout << "Button Clicked" << std::endl;
+			if (ZE::UI::DoButton("Button"))
+			{
+				std::cout << "Button Clicked" << std::endl;
+			}
+			bChecked = ZE::UI::DoCheckBox("Checkbox", bChecked);
+			ZE::UI::DoRadioButtons(radioTexts, 5, &selectedRadioButton);
+			ZE::UI::DoSlider(&sliderPercent);
+			ZE::UI::DoDropDown(&dropdownIndex, dropdownText, 5);
+			ZE::UI::DoTextInput(bufferInput, 256);
+			ZE::UI::DoNumberStepper(&number, 1.0f, true);
+			ZE::UI::DoNumberInput(&number2);
+			ZE::UI::DoVector2Input(vec2);
+			ZE::UI::DoVector3Input(vec3);
+			ZE::UI::DoVector4Input(vec4);
+			ZE::UI::EndPanel();
 		}
-
-		contentPos.y += buttonRect.m_dimension.y + 10;
-
-		bChecked = ZE::UI::DoCheckBox(contentPos, "This is a CheckBox", bChecked);
-
-		contentPos.y += 25;
-
-		ZE::UI::DoRadioButtons(contentPos, radioTexts, 5, &selectedRadioButton);
-		contentPos.y += 115;
- 
-		sliderRect.m_pos = contentPos;
-		ZE::UI::DoSlider(sliderRect, &sliderPercent);
-
-		contentPos.y += sliderRect.m_dimension.y + 15;
-
-		dropDownRect.m_pos = contentPos;
-		ZE::UI::DoDropDown(dropDownRect, &dropdownIndex, dropdownText, 5);
-
-		contentPos.y += sliderRect.m_dimension.y + 15;
-
-		textInputRect.m_pos = contentPos;
-		ZE::UI::DoTextInput(textInputRect, bufferInput, 256);
-
-		contentPos.y += textInputRect.m_dimension.y + 15;
-
-		numberStepperRect.m_pos = contentPos;
-		ZE::UI::DoNumberStepper(numberStepperRect, &number, 1.0f, true);
-
-		contentPos.y += numberStepperRect.m_dimension.y + 15;
-
-		numberInputRect.m_pos = contentPos;
-		ZE::UI::DoNumberInput(numberInputRect, &number2);
-
-		contentPos.y += numberInputRect.m_dimension.y + 15;
-
-		vecInputRect.m_pos = contentPos;
-		ZE::UI::DoVector2Input(vecInputRect, vec2);
-
-		contentPos.y += numberInputRect.m_dimension.y + 15;
-
-		vecInputRect.m_pos = contentPos;
-		ZE::UI::DoVector3Input(vecInputRect, vec3);
-
-		contentPos.y += numberInputRect.m_dimension.y + 15;
-
-		vecInputRect.m_pos = contentPos;
-		ZE::UI::DoVector4Input(vecInputRect, vec4);
 
 #if 0
+		if (ZE::UI::BeginPanel("Image Scaling...", ZE::UIRect(ZE::UIVector2(350.0f, 100.f), ZE::UIVector2(250.0f, 500.0f))))
 		{
-			ZE::UI::DoPanel(panel2Rect, "Image Scaling...", 10, contentPos, bPanelClosed);
-
-			if (!bPanelClosed)
-			{
-				ZE::UIRect imageRect;
-				imageRect.m_pos = contentPos;
-				imageRect.m_dimension = { 200, 70 };
-
-				ZE::UI::DrawTexture(imageRect, panelBg, ZE::UIVector4{1.0f});
-
-				imageRect.m_pos.y += imageRect.m_dimension.y + 5;
-
-				ZE::UI::DrawTexture(imageRect, panelBg, ZE::UIVector4{ 1.0f }, ZE::SCALE_9SCALE, ZE::UIVector4{ 0.40f, 0.15f, 0.15f, 0.15f });
-
-				imageRect.m_pos.y += imageRect.m_dimension.y + 5;
-
-				ZE::UI::DrawTexture(imageRect, panelBg, ZE::UIVector4{ 1.0f }, ZE::SCALE_BORDER, ZE::UIVector4{ 0.40f, 0.15f, 0.15f, 0.15f });
-			}
+			ZE::UI::DrawTexture({ 200, 70 }, panelBg, ZE::UIVector4{ 1.0f });
+			ZE::UI::DrawTexture({ 200, 70 }, panelBg, ZE::UIVector4{ 1.0f }, ZE::SCALE_9SCALE, ZE::UIVector4{ 0.40f, 0.15f, 0.15f, 0.15f });
+			ZE::UI::DrawTexture({ 200, 70 }, panelBg, ZE::UIVector4{ 1.0f }, ZE::SCALE_BORDER, ZE::UIVector4{ 0.40f, 0.15f, 0.15f, 0.15f });
+			ZE::UI::EndPanel();
 		}
 
+		if (ZE::UI::BeginPanel("Text Sample...", ZE::UIRect(ZE::UIVector2(600.0f, 100.f), ZE::UIVector2(250.0f, 500.0f))))
 		{
-			ZE::UI::DoDragablePanel(panel3Rect, "Text Sample...", 10, contentPos);
-
-			ZE::UIRect textRect;
-			textRect.m_pos = contentPos;
-			textRect.m_dimension = { 320, 100 };
-			
-			ZE::UI::DrawMultiLineText(textRect, "Text Align Left.\nLorem Ipsum Dolor Sit Amet. Lorem Ipsum Dolor Sit Amet.\nLorem Ipsum Dolor Sit Amet. Anpan. Anpan. Anpan. Anpan. Anpan. Anpan.", ZE::UIVector4{ 1.0f, 1.0f, 1.0f, 1.0f });
-			
-			textRect.m_pos.y += 120;
-			ZE::UI::DrawMultiLineText(textRect, "Text Align Center.\nLorem Ipsum Dolor Sit Amet. Lorem Ipsum Dolor Sit Amet.\nLorem Ipsum Dolor Sit Amet. Anpan. Anpan. Anpan. Anpan. Anpan. Anpan.", ZE::UIVector4{ 1.0f, 1.0f, 1.0f, 1.0f }, ZE::TEXT_CENTER);
-			
-			textRect.m_pos.y += 120;
-			ZE::UI::DrawMultiLineText(textRect, "Text Align Right.\nLorem Ipsum Dolor Sit Amet. Lorem Ipsum Dolor Sit Amet.\nLorem Ipsum Dolor Sit Amet. Anpan. Anpan. Anpan. Anpan. Anpan. Anpan.", ZE::UIVector4{ 1.0f, 1.0f, 1.0f, 1.0f }, ZE::TEXT_RIGHT);
-		
+			ZE::UI::DrawMultiLineText("Text Align Left.\nLorem Ipsum Dolor Sit Amet. Lorem Ipsum Dolor Sit Amet.\nLorem Ipsum Dolor Sit Amet. Anpan. Anpan. Anpan. Anpan. Anpan. Anpan.", ZE::UIVector4{ 1.0f, 1.0f, 1.0f, 1.0f });
+			ZE::UI::DrawMultiLineText("Text Align Center.\nLorem Ipsum Dolor Sit Amet. Lorem Ipsum Dolor Sit Amet.\nLorem Ipsum Dolor Sit Amet. Anpan. Anpan. Anpan. Anpan. Anpan. Anpan.", ZE::UIVector4{ 1.0f, 1.0f, 1.0f, 1.0f }, ZE::TEXT_CENTER);
+			ZE::UI::DrawMultiLineText("Text Align Right.\nLorem Ipsum Dolor Sit Amet. Lorem Ipsum Dolor Sit Amet.\nLorem Ipsum Dolor Sit Amet. Anpan. Anpan. Anpan. Anpan. Anpan. Anpan.", ZE::UIVector4{ 1.0f, 1.0f, 1.0f, 1.0f }, ZE::TEXT_RIGHT);
+			ZE::UI::EndPanel();
 		}
 #endif
 
