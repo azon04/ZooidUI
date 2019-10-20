@@ -1557,6 +1557,11 @@ namespace ZE
 		StackIDs.pop_back();
 	}
 
+	void UI::DoText(const UIChar* text, const UIVector4& fillColor /*= UIVector4(1.0f)*/, const UIFontStyle& fontStyle /*= DefaultFontStyle*/)
+	{
+		DrawMultiLineText(text, fillColor, ZE::TEXT_LEFT, ZE::TEXT_V_TOP, fontStyle.fontScale, fontStyle.font);
+	}
+
 	void UI::DrawTextInPos(UIVector2& pos, const UIChar* text, const UIVector4& fillColor, UIFont* font, Float32 scale)
 	{
 		MainUIState.drawer->DrawText(pos, fillColor, font, text, scale);
@@ -2448,7 +2453,7 @@ namespace ZE
 		Int32 count = 0;
 		Float32 x;
 		Float32 y = -pos.y;
-		if (lineCount) { *lineCount = 1; }
+		if (lineCount) { *lineCount = 0; }
 
 		while (generateWrapTextBuffer(text + count, charIndices, scale, depth, maxWidth, width, count))
 		{

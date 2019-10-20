@@ -154,6 +154,7 @@ int main()
 
 		if (ZE::UI::BeginPanel("Text Panel...", ZE::UIRect(ZE::UIVector2(100.0f, 100.f), ZE::UIVector2(250.0f, 500.0f))))
 		{
+			ZE::UI::DoText("Test Text");
 			if (ZE::UI::DoButton("Button"))
 			{
 				std::cout << "Button Clicked" << std::endl;

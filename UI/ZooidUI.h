@@ -589,6 +589,8 @@ namespace ZE
 
 		// =================================================
 
+		void DoText(const UIChar* text, const UIVector4& fillColor = UIVector4(1.0f), const UIFontStyle& fontStyle = DefaultFontStyle);
+
 		void DrawTextInPos(UIVector2& pos, const UIChar* text, const UIVector4& fillColor, UIFont* font = DefaultFont, Float32 scale = 1.0f);
 		void DrawTextInRect(const UIRect& rect, const UIChar* text, UIVector4& fillColor, ETextAlign textAlign = TEXT_LEFT, ETextVerticalAlign vAlign = TEXT_V_CENTER, Float32 scale = 1.0f, UIFont* font = DefaultFont);
 		
