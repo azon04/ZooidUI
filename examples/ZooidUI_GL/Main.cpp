@@ -141,16 +141,16 @@ int main()
 		ZE::UI::UpdateMouseState((ZE::Float32)mouseX, (ZE::Float32)mouseY, buttonState);
 
 		sprintf_s(buffer, "CPU Time: %.2f ms", cpuTime);
-		ZE::UI::DrawTextInPos(ZE::UIVector2{ 0.0f, .0f }, buffer, ZE::UIVector4{ 1.0f });
+		ZE::UI::DrawTextInPos(ZE::UIVector2{ 0.0f, ZE::UI::GetUIState()->screenHeight - 4.0f * ZE::UI::DefaultFont->calculateTextHeight(1.0f) }, buffer, ZE::UIVector4{ 1.0f });
 
 		sprintf_s(buffer, "Draw Time: %.2f ms", drawTime);
-		ZE::UI::DrawTextInPos(ZE::UIVector2{ 0.0f, 1.0f * ZE::UI::DefaultFont->calculateTextHeight(1.0f) }, buffer, ZE::UIVector4{ 1.0f });
+		ZE::UI::DrawTextInPos(ZE::UIVector2{ 0.0f, ZE::UI::GetUIState()->screenHeight - 3.0f * ZE::UI::DefaultFont->calculateTextHeight(1.0f) }, buffer, ZE::UIVector4{ 1.0f });
 
 		sprintf_s(buffer, "Total Time: %.2f ms", totalTime);
-		ZE::UI::DrawTextInPos(ZE::UIVector2{ 0.0f, 2.0f * ZE::UI::DefaultFont->calculateTextHeight(1.0f) }, buffer, ZE::UIVector4{ 1.0f });
+		ZE::UI::DrawTextInPos(ZE::UIVector2{ 0.0f, ZE::UI::GetUIState()->screenHeight - 2.0f * ZE::UI::DefaultFont->calculateTextHeight(1.0f) }, buffer, ZE::UIVector4{ 1.0f });
 
 		sprintf_s(buffer, "FPS: %.1f", 1.0f / (totalTime / 1000.0f));
-		ZE::UI::DrawTextInPos(ZE::UIVector2{ 0.0f, 3.0f * ZE::UI::DefaultFont->calculateTextHeight(1.0f) }, buffer, ZE::UIVector4{ 1.0f });
+		ZE::UI::DrawTextInPos(ZE::UIVector2{ 0.0f, ZE::UI::GetUIState()->screenHeight - 1.0f * ZE::UI::DefaultFont->calculateTextHeight(1.0f) }, buffer, ZE::UIVector4{ 1.0f });
 
 		if (ZE::UI::BeginPanel("Text Panel...", ZE::UIRect(ZE::UIVector2(100.0f, 100.f), ZE::UIVector2(250.0f, 500.0f))))
 		{
@@ -189,6 +189,35 @@ int main()
 			ZE::UI::EndPanel();
 		}
 #endif
+
+		ZE::UI::BeginMenu();
+		if (ZE::UI::DoMenu("File"))
+		{
+			ZE::UI::BeginSubMenu(100.0f);
+			if (ZE::UI::DoSubMenu("New", true))
+			{
+				ZE::UI::BeginSubMenu(100.0f);
+				if (ZE::UI::DoSubMenu("Document"))
+				{
+					std::cout << "File|New|Document" << std::endl;
+				}
+				if (ZE::UI::DoSubMenu("Project", true))
+				{
+					ZE::UI::BeginSubMenu(100.0f);
+					ZE::UI::DoSubMenu("C++");
+					ZE::UI::DoSubMenu("Java");
+					ZE::UI::EndSubMenu();
+				}
+				ZE::UI::EndSubMenu();
+			}
+			if (ZE::UI::DoSubMenu("Save..."))
+			{
+				std::cout << "Saving...." << std::endl;
+			}
+			ZE::UI::EndSubMenu();
+		}
+		ZE::UI::DoMenu("View");
+		ZE::UI::EndMenu();
 
 		ZE::UI::EndFrame();
 		cpuTime = ZE::UI::Lerp( cpuTime, timer.ResetAndGetDeltaMS(), cpuTime == 0.0f ? 1.0f : .01f);

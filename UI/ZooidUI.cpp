@@ -111,6 +111,8 @@ namespace ZE
 	UIDropdownStyle UI::DefaultDropdownStyle;
 	UITextInputStyle UI::DefaultTextInputStyle;
 	UIFontStyle UI::DefaultFontStyle;
+	UIMenuStyle UI::DefaultMenuStyle;
+	UIMenuStyle UI::DefaultSubMenuStyle;
 	
 	UIStack<UInt32> UI::StackIDs;
 
@@ -156,6 +158,9 @@ namespace ZE
 		MainUIState.textTempBuffer = UINEW(UIChar[TEXT_TEMP_LENGTH]); // #TODO need to create UIAlloc
 
 		MainUIState.textInputFilterChar = nullptr;
+
+		MainUIState.screenWidth = width;
+		MainUIState.screenHeight = height;
 
 		UITextureManager::Init();
 
@@ -284,6 +289,22 @@ namespace ZE
 		DefaultTextInputStyle.fontStyle.font = DefaultFont;
 		DefaultTextInputStyle.fontStyle.fontScale = 1.0f;
 
+		// Default Menu Style
+		DefaultMenuStyle.fontStyle.font = DefaultFont;
+		DefaultMenuStyle.fontStyle.fontScale = 1.0f;
+		DefaultMenuStyle.background.fillColor = UIVector4(0.18f, 0.18f, 0.19f, 1.0f);
+		DefaultMenuStyle.hover.fillColor = UIVector4(0.25f, 0.25f, 0.25f, 1.0f);
+		DefaultMenuStyle.selected.fillColor = UIVector4(0.1f, 0.1f, 0.1f, 1.0f);
+		DefaultMenuStyle.menuPadding = 10.0f;
+
+		// Default Sub Menu Style
+		DefaultSubMenuStyle.fontStyle.font = DefaultFont;
+		DefaultSubMenuStyle.fontStyle.fontScale = 1.0f;
+		DefaultSubMenuStyle.selected.fillColor = UIVector4(0.18f, 0.18f, 0.19f, 1.0f);
+		DefaultSubMenuStyle.hover.fillColor = UIVector4(0.25f, 0.25f, 0.25f, 1.0f);
+		DefaultSubMenuStyle.background.fillColor = UIVector4(0.1f, 0.1f, 0.1f, 1.0f);
+		DefaultSubMenuStyle.menuPadding = 5.0f;
+
 		// Push 0 as default stack id
 		StackIDs.push_back(0);
 	}
@@ -335,7 +356,8 @@ namespace ZE
 		MainUIState.mouseDeltaY = mouseY - MainUIState.mouseY;
 		MainUIState.mouseX = mouseX;
 		MainUIState.mouseY = mouseY;
-		MainUIState.mouseDown = mouseDown;
+		MainUIState.lastMouseState = MainUIState.mouseState;
+		MainUIState.mouseState = mouseDown;
 	}
 
 	void UI::RecordKeyboardButton(UIChar keyChar, int keyState)
@@ -463,7 +485,7 @@ namespace ZE
 		
 		UInt32 _id = GetUIIDFromString(label);
 
-		if (mouseInside && MainUIState.mouseDown == EButtonState::BUTTON_DOWN)
+		if (mouseInside && MainUIState.mouseState == EButtonState::BUTTON_DOWN)
 		{
 			MainUIState.activeItem.id = _id;
 		}
@@ -544,7 +566,7 @@ namespace ZE
 
 		bool mouseInside = rect.isContain(UIVector2{ MainUIState.mouseX, MainUIState.mouseY });
 		bool bPressed = false;
-		if (mouseInside && MainUIState.mouseDown == EButtonState::BUTTON_DOWN)
+		if (mouseInside && MainUIState.mouseState == EButtonState::BUTTON_DOWN)
 		{
 			MainUIState.activeItem.id = _id;
 		}
@@ -653,7 +675,7 @@ namespace ZE
 
 		bool mouseInside = rect.isContain(UIVector2{ MainUIState.mouseX, MainUIState.mouseY });
 		bool bPressed = false;
-		if (mouseInside && MainUIState.mouseDown == EButtonState::BUTTON_DOWN)
+		if (mouseInside && MainUIState.mouseState == EButtonState::BUTTON_DOWN)
 		{
 			MainUIState.activeItem.id = _id;
 		}
@@ -835,7 +857,7 @@ namespace ZE
 
 		bool mouseInside = iconRect.isContain(UIVector2{ MainUIState.mouseX, MainUIState.mouseY });
 		bool bPressed = false;
-		if (mouseInside && MainUIState.mouseDown == EButtonState::BUTTON_DOWN)
+		if (mouseInside && MainUIState.mouseState == EButtonState::BUTTON_DOWN)
 		{
 			MainUIState.activeItem.id = _id;
 		}
@@ -873,7 +895,7 @@ namespace ZE
 
 		bool bJustActive = false;
 		bool mouseInside = headerRect.isContain(UIVector2{ MainUIState.mouseX, MainUIState.mouseY });
-		if ((MainUIState.activeItem.id == _id || mouseInside) && MainUIState.mouseDown == EButtonState::BUTTON_DOWN)
+		if ((MainUIState.activeItem.id == _id || mouseInside) && MainUIState.mouseState == EButtonState::BUTTON_DOWN)
 		{
 			bJustActive = MainUIState.activeItem.id != _id;
 			MainUIState.activeItem.id = _id;
@@ -929,7 +951,7 @@ namespace ZE
 		bool mouseInside = rect.isContain(UIVector2{ MainUIState.mouseX, MainUIState.mouseY });
 		UInt32 _id = GetUIIDFromPointer(percent);
 
-		if (mouseInside && MainUIState.mouseDown == EButtonState::BUTTON_DOWN)
+		if (mouseInside && MainUIState.mouseState == EButtonState::BUTTON_DOWN)
 		{
 			MainUIState.activeItem.id = _id;
 		}
@@ -1002,7 +1024,7 @@ namespace ZE
 
 		bool mouseInside = selectionRect.isContain(UIVector2(MainUIState.mouseX, MainUIState.mouseY));
 
-		if (mouseInside && MainUIState.mouseDown == EButtonState::BUTTON_DOWN)
+		if (mouseInside && MainUIState.mouseState == EButtonState::BUTTON_DOWN)
 		{
 			MainUIState.activeItem.id = _id;
 		}
@@ -1093,7 +1115,7 @@ namespace ZE
 				{
 					selRect.m_pos.y = selTextRect.m_pos.y;
 					MainUIState.drawer->DrawRect(selRect, style.selectorHoverStyle.fillColor);
-					if (MainUIState.mouseDown == EButtonState::BUTTON_DOWN)
+					if (MainUIState.mouseState == EButtonState::BUTTON_DOWN)
 					{
 						cacheId = 0;
 						*selectedIdx = i;
@@ -1130,7 +1152,7 @@ namespace ZE
 
 		static Int32 lastMaxLength = 100000;
 
-		if (mouseInside && MainUIState.mouseDown == EButtonState::BUTTON_DOWN)
+		if (mouseInside && MainUIState.mouseState == EButtonState::BUTTON_DOWN)
 		{
 			if (MainUIState.activeItem.id != _id)
 			{
@@ -1276,7 +1298,7 @@ namespace ZE
 
 		static Int32 lastMaxLength = 100000;
 
-		if (mouseInside && MainUIState.mouseDown == EButtonState::BUTTON_DOWN) // Set this as an active if clicked
+		if (mouseInside && MainUIState.mouseState == EButtonState::BUTTON_DOWN) // Set this as an active if clicked
 		{
 			if (MainUIState.activeItem.id != _id)
 			{
@@ -1493,7 +1515,7 @@ namespace ZE
 
 		bool bJustActive = false;
 		bool mouseInside = headerRect.isContain(UIVector2{ MainUIState.mouseX, MainUIState.mouseY });
-		if ((MainUIState.activeItem.id == _id || mouseInside) && MainUIState.mouseDown == EButtonState::BUTTON_DOWN)
+		if ((MainUIState.activeItem.id == _id || mouseInside) && MainUIState.mouseState == EButtonState::BUTTON_DOWN)
 		{
 			bJustActive = MainUIState.activeItem.id != _id;
 			MainUIState.activeItem.id = _id;
@@ -1555,6 +1577,251 @@ namespace ZE
 		MainUIState.drawDirectionStack.pop_back();
 
 		StackIDs.pop_back();
+	}
+
+	void UI::BeginMenu()
+	{
+		UIStyle& backgroundStyle = DefaultMenuStyle.background;
+		UIFontStyle& fontStyle = DefaultMenuStyle.fontStyle;
+
+		UIRect rect(UIVector2(0.0f), UIVector2(MainUIState.screenWidth, fontStyle.font->calculateTextHeight(fontStyle.fontScale) + 5.0f));
+
+		if (backgroundStyle.texture)
+		{
+			MainUIState.drawer->DrawTexture(rect, backgroundStyle.texture, backgroundStyle.fillColor, backgroundStyle.textureScale, backgroundStyle.textureOffset);
+		}
+		else
+		{
+			MainUIState.drawer->DrawRect(rect, backgroundStyle.fillColor);
+		}
+
+		// Menu ID and positioning
+		UInt32 menuID = GetUIIDFromString("~~~~~WindowMenu~~~~");
+		StackIDs.push_back(menuID);
+
+		// Set Position rule
+		MainUIState.drawPosDimensionStack.push_back(MainUIState.drawPosDimension);
+
+		MainUIState.drawPosDimension = rect;
+
+		MainUIState.drawDirectionStack.push_back(MainUIState.drawDirection);
+		MainUIState.drawDirection = UIVector2(1.0f, 0.0f);
+
+		MainUIState.menuLevel = 0;
+	}
+
+	bool UI::DoMenu(const UIChar* menuLabel)
+	{
+		UIFontStyle& fontStyle = DefaultMenuStyle.fontStyle;
+
+		UInt32 menuID = GetUIIDFromString(menuLabel);
+		UIRect rect = MainUIState.drawPosDimension;
+
+		rect.m_dimension.x = fontStyle.font->calculateTextLength(menuLabel, fontStyle.fontScale) + 2.0f * DefaultMenuStyle.menuPadding;
+
+		// Update Draw Position
+		MainUIState.drawPosDimension.m_pos.x += rect.m_dimension.x;
+
+		bool mouseInside = rect.isContain(UIVector2{ MainUIState.mouseX, MainUIState.mouseY });
+
+		if (mouseInside && MainUIState.mouseState == BUTTON_DOWN)
+		{
+			MainUIState.activeItem.id = menuID;
+		}
+		else if (mouseInside)
+		{
+			MainUIState.hotItem.id = menuID;
+			if (MainUIState.activeItem.id == menuID && MainUIState.lastActiveItem.id == menuID)
+			{
+				MainUIState.lastActiveItem.id = 0;
+				MainUIState.activeItem.id = 0;
+				MainUIState.MenuStack.clear();
+			}
+			else if (MainUIState.activeItem.id == menuID) 
+			{ 
+				MainUIState.lastActiveItem.id = menuID;
+				MainUIState.activeItem.id = 0;
+				MainUIState.MenuStack.clear();
+				MainUIState.MenuStack.push_back(UIMenuInfo{ rect, menuID, false });
+			}
+		}
+
+		bool bMenuSelected = MainUIState.MenuStack.size() > 0 && MainUIState.MenuStack[0].menuID.id == menuID;
+
+		if (bMenuSelected && !mouseInside && MainUIState.lastMouseState == BUTTON_DOWN && MainUIState.mouseState == BUTTON_UP)
+		{
+			MainUIState.MenuStack.clear();
+			MainUIState.lastActiveItem.id = 0;
+			if (MainUIState.activeItem.id == menuID) { MainUIState.activeItem.id = 0; }
+			bMenuSelected = false;
+		}
+
+		if (bMenuSelected)
+		{
+			UIStyle& selectedStyle = DefaultMenuStyle.selected;
+			if (selectedStyle.texture)
+			{
+				MainUIState.drawer->DrawTexture(rect, selectedStyle.texture, selectedStyle.fillColor, selectedStyle.textureScale, selectedStyle.textureOffset);
+			}
+			else
+			{
+				MainUIState.drawer->DrawRect(rect, selectedStyle.fillColor);
+			}
+		}
+		else if (MainUIState.hotItem.id == menuID)
+		{
+			UIStyle& hoverStyle = DefaultMenuStyle.hover;
+			if (hoverStyle.texture)
+			{
+				MainUIState.drawer->DrawTexture(rect, hoverStyle.texture, hoverStyle.fillColor, hoverStyle.textureScale, hoverStyle.textureOffset);
+			}
+			else
+			{
+				MainUIState.drawer->DrawRect(rect, hoverStyle.fillColor);
+			}
+		}
+
+		DrawTextInRect(rect, menuLabel, UIVector4(1.0f), ZE::TEXT_CENTER, ZE::TEXT_V_CENTER, fontStyle.fontScale, fontStyle.font);
+
+		return MainUIState.MenuStack.size() > 0 && MainUIState.MenuStack[0].menuID.id == menuID;
+	}
+
+	void UI::EndMenu()
+	{
+		StackIDs.pop_back();
+
+		MainUIState.drawDirection = MainUIState.drawDirectionStack.back();
+		MainUIState.drawDirectionStack.pop_back();
+
+		MainUIState.drawPosDimension = MainUIState.drawPosDimensionStack.back();
+		MainUIState.drawPosDimensionStack.pop_back();
+	}
+
+	void UI::BeginSubMenu(Float32 subMenusWidth)
+	{
+		UIMenuInfo& menuInfo = MainUIState.MenuStack[MainUIState.menuLevel];
+		UIStyle& backgroundStyle = DefaultSubMenuStyle.background;
+		UIFontStyle& fontStyle = DefaultSubMenuStyle.fontStyle;
+
+		MainUIState.menuLevel++;
+
+		UIRect rect(UIVector2(0.0f), UIVector2(subMenusWidth, 1.0f));
+		rect.m_pos = menuInfo.posAndDimension.m_pos + (menuInfo.subMenu ? UIVector2(menuInfo.posAndDimension.m_dimension.x, 0.0f) : UIVector2(0.0f, menuInfo.posAndDimension.m_dimension.y));
+
+		if (backgroundStyle.texture)
+		{
+			MainUIState.drawer->DrawTexture(rect, backgroundStyle.texture, backgroundStyle.fillColor, backgroundStyle.textureScale, backgroundStyle.textureOffset);
+		}
+		else
+		{
+			MainUIState.drawer->DrawRect(rect, backgroundStyle.fillColor);
+		}
+
+		// Menu ID and positioning
+		UInt32 menuID = GetUIIDFromString("~~~~~WindowSubMenu~~~~");
+		StackIDs.push_back(menuID);
+
+		// Set Position rule
+		MainUIState.drawPosDimensionStack.push_back(MainUIState.drawPosDimension);
+		MainUIState.drawPosDimension = rect;
+
+		MainUIState.drawDirectionStack.push_back(MainUIState.drawDirection);
+		MainUIState.drawDirection = UIVector2(0.0f, 1.0f);
+	}
+
+	bool UI::DoSubMenu(const UIChar* subMenuLabel, bool hasSubMenu /*= false*/)
+	{
+		UIFontStyle& fontStyle = DefaultSubMenuStyle.fontStyle;
+		UIStyle& backgroundStyle = DefaultSubMenuStyle.background;
+
+		UInt32 menuID = GetUIIDFromString(subMenuLabel);
+		UIRect rect = MainUIState.drawPosDimension;
+		bool bPressed = false;
+
+		rect.m_dimension.y = fontStyle.font->calculateTextHeight(fontStyle.fontScale) + 10.0f;
+
+		// Update Draw Position
+		MainUIState.drawPosDimension.m_pos.y += rect.m_dimension.y;
+
+		bool mouseInside = rect.isContain(UIVector2{ MainUIState.mouseX, MainUIState.mouseY });
+
+		if (mouseInside && MainUIState.mouseState == BUTTON_DOWN)
+		{
+			if (MainUIState.activeItem.id != menuID)
+			{
+				MainUIState.activeItem.id = menuID;
+				bPressed = true;
+			}
+		}
+		else if (mouseInside)
+		{
+			MainUIState.hotItem.id = menuID;
+			while (MainUIState.MenuStack.size() > MainUIState.menuLevel)
+			{
+				MainUIState.MenuStack.pop_back();
+			}
+			if (hasSubMenu)
+			{
+				MainUIState.MenuStack.push_back(UIMenuInfo{ rect, menuID, true });
+			}
+		}
+
+		bool bSubSubMenuActive = hasSubMenu && MainUIState.MenuStack.size() > MainUIState.menuLevel && MainUIState.MenuStack[MainUIState.menuLevel].menuID.id == menuID;
+		
+		if (MainUIState.activeItem.id == menuID)
+		{
+			UIStyle& selectedStyle = DefaultMenuStyle.selected;
+			if (selectedStyle.texture)
+			{
+				MainUIState.drawer->DrawTexture(rect, selectedStyle.texture, selectedStyle.fillColor, selectedStyle.textureScale, selectedStyle.textureOffset);
+			}
+			else
+			{
+				MainUIState.drawer->DrawRect(rect, selectedStyle.fillColor);
+			}
+		}
+		else if (MainUIState.hotItem.id == menuID || bSubSubMenuActive)
+		{
+			UIStyle& hoverStyle = DefaultMenuStyle.hover;
+			if (hoverStyle.texture)
+			{
+				MainUIState.drawer->DrawTexture(rect, hoverStyle.texture, hoverStyle.fillColor, hoverStyle.textureScale, hoverStyle.textureOffset);
+			}
+			else
+			{
+				MainUIState.drawer->DrawRect(rect, hoverStyle.fillColor);
+			}
+		}
+		else
+		{
+			if (backgroundStyle.texture)
+			{
+				MainUIState.drawer->DrawTexture(rect, backgroundStyle.texture, backgroundStyle.fillColor, backgroundStyle.textureScale, backgroundStyle.textureOffset);
+			}
+			else
+			{
+				MainUIState.drawer->DrawRect(rect, backgroundStyle.fillColor);
+			}
+		}
+
+		UIRect textRect = rect;
+		textRect.m_pos.x += DefaultSubMenuStyle.menuPadding;
+		DrawTextInRect(textRect, subMenuLabel, UIVector4(1.0f), ZE::TEXT_LEFT, ZE::TEXT_V_CENTER, fontStyle.fontScale, fontStyle.font);
+
+		return bPressed || bSubSubMenuActive;
+	}
+
+	void UI::EndSubMenu()
+	{
+		StackIDs.pop_back();
+
+		MainUIState.drawDirection = MainUIState.drawDirectionStack.back();
+		MainUIState.drawDirectionStack.pop_back();
+
+		MainUIState.drawPosDimension = MainUIState.drawPosDimensionStack.back();
+		MainUIState.drawPosDimensionStack.pop_back();
+
+		MainUIState.menuLevel--;
 	}
 
 	void UI::DoText(const UIChar* text, const UIVector4& fillColor /*= UIVector4(1.0f)*/, const UIFontStyle& fontStyle /*= DefaultFontStyle*/)

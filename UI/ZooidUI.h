@@ -164,6 +164,13 @@ namespace ZE
 		bool closed;
 	};
 
+	struct UIMenuInfo
+	{
+		UIRect posAndDimension;
+		UI_ID menuID;
+		bool subMenu;
+	};
+
 	class UIState
 	{
 	public:
@@ -182,7 +189,8 @@ namespace ZE
 		UIStack<UIRect> drawPosDimensionStack;
 		UIStack<UIVector2> drawDirectionStack;
 
-		EButtonState mouseDown;
+		EButtonState lastMouseState;
+		EButtonState mouseState;
 
 		UIRenderer* renderer;
 		UIDrawer* drawer;
@@ -204,6 +212,12 @@ namespace ZE
 		Timer mainTimer;
 		Float32 timeFromStart;
 
+		// Screen size
+		Int32 screenWidth;
+		Int32 screenHeight;
+
+		Int32 menuLevel;
+		UIArray<UIMenuInfo> MenuStack;
 		UIHashMap<UInt32, UIPanelState> panelStates;
 	};
 
@@ -474,6 +488,15 @@ namespace ZE
 		UIChar cursorChar;
 	};
 
+	struct UIMenuStyle
+	{
+		UIFontStyle fontStyle;
+		UIStyle background;
+		UIStyle hover;
+		UIStyle selected;
+		UInt32 menuPadding;
+	};
+
 	// Functions to use to draw everything
 	namespace UI
 	{
@@ -490,6 +513,8 @@ namespace ZE
 		extern UIFont* DefaultFont;
 		extern UITextInputStyle DefaultTextInputStyle;
 		extern UIFontStyle DefaultFontStyle;
+		extern UIMenuStyle DefaultMenuStyle;
+		extern UIMenuStyle DefaultSubMenuStyle;
 
 		// ID Stack
 		extern UIStack<UInt32> StackIDs;
@@ -587,7 +612,25 @@ namespace ZE
 		// End of the panel
 		void EndPanel();
 
-		// =================================================
+		// Menu Implementation
+
+		// Start Window Menu
+		void BeginMenu();
+
+		// Make window menu
+		bool DoMenu(const UIChar* menuLabel);
+
+		// End Menu
+		void EndMenu();
+
+		// Start Window sub-menu
+		void BeginSubMenu(Float32 subMenusWidth);
+
+		// Make window sub-menu
+		bool DoSubMenu(const UIChar* subMenuLabel, bool hasSubMenu = false);
+
+		// end sub menu
+		void EndSubMenu();
 
 		void DoText(const UIChar* text, const UIVector4& fillColor = UIVector4(1.0f), const UIFontStyle& fontStyle = DefaultFontStyle);
 
@@ -604,6 +647,8 @@ namespace ZE
 		
 		void DrawTextureInPos(const UIVector2& pos, UITexture* texture, const UIVector4& colorMultiplier, ETextureScale textureScale = SCALE_IMAGE, const UIVector4& scaleOffset = UIVector4(0.0f));
 		void DrawTextureInPos(const UIRect& rect, UITexture* texture, const UIVector4& colorMultiplier, ETextureScale textureScale = SCALE_IMAGE, const UIVector4& scaleOffset = UIVector4(0.0f));
+		
+		// =================================================
 
 		void ProcessDrawList();
 
