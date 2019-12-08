@@ -100,22 +100,22 @@ namespace ZE
 		// Instance Data
 		glGenBuffers(1, &VBO_instance);
 		glBindBuffer(GL_ARRAY_BUFFER, VBO_instance);
-		glBufferData(GL_ARRAY_BUFFER, maxInstanceDraw * sizeof(UIInstance), nullptr, GL_DYNAMIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, maxInstanceDraw * sizeof(UIDrawInstance), nullptr, GL_DYNAMIC_DRAW);
 		
 		// Position
-		glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(UIInstance), (GLvoid*)0);
+		glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(UIDrawInstance), (GLvoid*)0);
 		glEnableVertexAttribArray(3);
 
 		// Dimension + Radius
-		glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(UIInstance), (GLvoid*)(3 * sizeof(GLfloat)));
+		glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(UIDrawInstance), (GLvoid*)(3 * sizeof(GLfloat)));
 		glEnableVertexAttribArray(4);
 
 		// Color
-		glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, sizeof(UIInstance), (GLvoid*)(6 * sizeof(GLfloat)));
+		glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, sizeof(UIDrawInstance), (GLvoid*)(6 * sizeof(GLfloat)));
 		glEnableVertexAttribArray(5);
 
 		// UV Coord + Dimension
-		glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, sizeof(UIInstance), (GLvoid*)(10 * sizeof(GLfloat)));
+		glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, sizeof(UIDrawInstance), (GLvoid*)(10 * sizeof(GLfloat)));
 		glEnableVertexAttribArray(6);
 		
 		glVertexAttribDivisor(3, 1);
@@ -158,19 +158,19 @@ namespace ZE
 		glBindBuffer(GL_ARRAY_BUFFER, VBO_instance);
 
 		// Position
-		glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(UIInstance), (GLvoid*)0);
+		glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(UIDrawInstance), (GLvoid*)0);
 		glEnableVertexAttribArray(3);
 
 		// Dimension + Radius
-		glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(UIInstance), (GLvoid*)(3 * sizeof(GLfloat)));
+		glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(UIDrawInstance), (GLvoid*)(3 * sizeof(GLfloat)));
 		glEnableVertexAttribArray(4);
 
 		// Color
-		glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, sizeof(UIInstance), (GLvoid*)(6 * sizeof(GLfloat)));
+		glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, sizeof(UIDrawInstance), (GLvoid*)(6 * sizeof(GLfloat)));
 		glEnableVertexAttribArray(5);
 
 		// UV Coord + Dimension
-		glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, sizeof(UIInstance), (GLvoid*)(10 * sizeof(GLfloat)));
+		glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, sizeof(UIDrawInstance), (GLvoid*)(10 * sizeof(GLfloat)));
 		glEnableVertexAttribArray(6);
 
 		glVertexAttribDivisor(3, 1);
@@ -454,7 +454,7 @@ namespace ZE
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 	}
 
-	void GL_UIRenderer::setInstanceDrawData(const UIArray<UIInstance>& instances)
+	void GL_UIRenderer::setInstanceDrawData(const UIArray<UIDrawInstance>& instances)
 	{
 		glBindBuffer(GL_ARRAY_BUFFER, VBO_instance);
 		if (maxInstanceDraw < instances.size())
@@ -463,10 +463,10 @@ namespace ZE
 			{
 				maxInstanceDraw *= 2;
 			}
-			glBufferData(GL_ARRAY_BUFFER, sizeof(UIInstance) * maxInstanceDraw, nullptr, GL_DYNAMIC_DRAW);
+			glBufferData(GL_ARRAY_BUFFER, sizeof(UIDrawInstance) * maxInstanceDraw, nullptr, GL_DYNAMIC_DRAW);
 		}
 
-		glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(UIInstance) * instances.size(), instances.data());
+		glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(UIDrawInstance) * instances.size(), instances.data());
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 	}
 

@@ -54,7 +54,7 @@ namespace ZE
 
 		void setDrawData(const UIArray<UIVertex>& vertices);
 		void setTextData(const UIArray<UIVertex>& vertices);
-		void setInstanceDrawData(const UIArray<UIInstance>& instances);
+		void setInstanceDrawData(const UIArray<UIDrawInstance>& instances);
 		void processDrawItem(UIDrawItem* drawItem);
 
 		int m_width;
