@@ -52,6 +52,19 @@ namespace ZE
 		SCALE_BORDER
 	};
 
+	enum EDirection : UInt8
+	{
+		DIR_VERTICAL,
+		DIR_HORIZONTAL
+	};
+
+	enum EDrawMaskProcess : UInt8
+	{
+		DRAW_MASK_NONE,
+		DRAW_MASK_PUSH,
+		DRAW_MASK_POP
+	};
+
 	struct UIVector2
 	{
 		Float32 x;
@@ -152,7 +165,10 @@ namespace ZE
 	struct UIPanelState
 	{
 		UIRect posAndDimension;
+		UIVector2 contentSize;
+		Float32 scrollOffset;
 		bool closed;
+		bool bAutoSize;
 	};
 
 	// Menu Info
@@ -182,6 +198,7 @@ namespace ZE
 		Float32 mouseY;
 		Float32 mouseDeltaX;
 		Float32 mouseDeltaY;
+		Float32 scrollOffsetY;
 
 		UIRenderer* renderer;
 		UIDrawer* drawer;
@@ -226,6 +243,10 @@ namespace ZE
 
 		// Panel State Map
 		UIHashMap<UInt32, UIPanelState> panelStates;
+
+	public:
+
+		Float32 UseScrollOffset();
 	};
 
 	struct UIDrawInstance
@@ -274,6 +295,9 @@ namespace ZE
 		bool isUsingRectInstance() const { return m_bUsingRectInstance; }
 		bool isCrop() const { return m_bCrop; }
 
+		bool isDrawMask() const { return m_Mask != DRAW_MASK_NONE;  }
+		EDrawMaskProcess getDrawMask() const { return m_Mask; }
+
 		UIVector2 getDimension() const { return m_shapeDimension; }
 		UIVector2 getPos() const { return m_pos; }
 		UIVector4 getCropDimension() const { return UIVector4(m_pos.x, m_pos.y, m_shapeDimension.x, m_shapeDimension.y); }
@@ -286,6 +310,7 @@ namespace ZE
 		bool m_bFont = false;
 		bool m_bUsingRectInstance = false;
 		bool m_bCrop = false;
+		EDrawMaskProcess m_Mask = DRAW_MASK_NONE;
 
 		UInt32 m_textureHandle = 0;
 		Float32 m_roundness = 0.0f;
@@ -418,6 +443,11 @@ namespace ZE
 		void SwapBuffer();
 		void SetLayer(Int32 layer) { m_currentLayer = layer; }
 
+		// Draw Mask
+		void PushRectMask(const UIRect& rect);
+		//void PushTextureMask(const UIRect& rect, UITexture* texture, ETextureScale textureScale = SCALE_IMAGE, const UIVector4& textureOffset = UIVector4(0.0f));
+		void PopMask();
+
 		UIDrawList* getCurrentDrawList() { return m_currentDrawList; }
 
 	protected:
@@ -426,6 +456,8 @@ namespace ZE
 		Float32 m_currentDepth = 0.00001f;
 		Int32 m_currentLayer = 0;
 		const Float32 m_step = 0.00001f;
+
+		UIArray<UIDrawItem*> PushMaskDrawStack;
 	};
 
 	class StringHelper
@@ -466,6 +498,14 @@ namespace ZE
 	{
 		UIStyle slider;
 		UIButtonStyle sliderButton;
+	};
+
+	struct UIScrollBarStyle
+	{
+		Float32 scrollLineSize;
+		Float32 scrollButtonSize;
+		UIStyle scrollBar;
+		UIButtonStyle scrollButton;
 	};
 
 	struct UIPanelStyle
@@ -521,6 +561,7 @@ namespace ZE
 		extern UIFontStyle DefaultFontStyle;
 		extern UIMenuStyle DefaultMenuStyle;
 		extern UIMenuStyle DefaultSubMenuStyle;
+		extern UIScrollBarStyle DefaultScrollBarStyle;
 
 		// ID Stack
 		extern UIStack<UInt32> StackIDs;
@@ -554,6 +595,9 @@ namespace ZE
 		
 		// Update/Record keyboard text input
 		void RecordTextInput(UIChar keyChar);
+
+		// Record Mouse scroll input
+		void RecordMouseScroll(Float32 yOffset);
 
 		// ==============================================
 
@@ -614,7 +658,7 @@ namespace ZE
 
 		// Start panel, all component/widgets go after this will be part of the panel
 		// @return true if panel is created and not closed
-		bool BeginPanel(const UIChar* panelLabel, const UIRect initialRect, const UIPanelStyle& style = DefaultPanelStyle);
+		bool BeginPanel(const UIChar* panelLabel, const UIRect initialRect, bool bAutoSize = false, const UIPanelStyle& style = DefaultPanelStyle);
 		
 		// End of the panel
 		void EndPanel();
@@ -656,6 +700,9 @@ namespace ZE
 		void DrawTextureInPos(const UIVector2& pos, UITexture* texture, const UIVector4& colorMultiplier, ETextureScale textureScale = SCALE_IMAGE, const UIVector4& scaleOffset = UIVector4(0.0f));
 		void DrawTextureInPos(const UIRect& rect, UITexture* texture, const UIVector4& colorMultiplier, ETextureScale textureScale = SCALE_IMAGE, const UIVector4& scaleOffset = UIVector4(0.0f));
 		
+		// Draw Scroll Bar
+		float DoScrollBar(const UIVector2& pos, float currentOffset, float directionSize, float actualSize, EDirection scrollDirection = DIR_VERTICAL, const UIScrollBarStyle& scrollBarStyle = DefaultScrollBarStyle);
+
 		// =================================================
 
 		// Process all draw list and render to screen

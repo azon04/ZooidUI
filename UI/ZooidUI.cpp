@@ -15,6 +15,7 @@
 #define UIMEM_ZERO(Dst, _Size) memset(Dst, 0, _Size)
 #define UIMAX(a, b) (a > b ? (a) : (b))
 #define UIMIN(a, b) (a < b ? (a) : (b))
+#define UICLAMP(a, b, v) UIMAX( a, UIMIN(b, v) )
 
 #define MERGE_PATH(p1, p2) p1 p2
 
@@ -113,6 +114,7 @@ namespace ZE
 	UIFontStyle UI::DefaultFontStyle;
 	UIMenuStyle UI::DefaultMenuStyle;
 	UIMenuStyle UI::DefaultSubMenuStyle;
+	UIScrollBarStyle UI::DefaultScrollBarStyle;
 	
 	UIStack<UInt32> UI::StackIDs;
 
@@ -315,6 +317,16 @@ namespace ZE
 		DefaultSubMenuStyle.background.fillColor = UIVector4(0.1f, 0.1f, 0.1f, 1.0f);
 		DefaultSubMenuStyle.menuPadding = 5.0f;
 
+		// Default ScrollBar Style
+		DefaultScrollBarStyle.scrollBar.fillColor = { 0.25f, 0.45f, 0.6f, 1.0f };
+		DefaultScrollBarStyle.scrollBar.texture = nullptr;
+		DefaultScrollBarStyle.scrollButton = ZE::UI::DefaultButtonStyle;
+		DefaultScrollBarStyle.scrollButton.up.fillColor = { 0.5f, 0.75f, 1.0f, 1.0f };
+		DefaultScrollBarStyle.scrollButton.hover.fillColor = { 0.5f, 0.75f, 1.0f, 0.75f };
+		DefaultScrollBarStyle.scrollButton.down.fillColor = { 0.5f, 0.75f, 1.0f, 0.5f };
+		DefaultScrollBarStyle.scrollLineSize = 3.0f;
+		DefaultScrollBarStyle.scrollButtonSize = 5.0f;
+
 		// Push 0 as default stack id
 		StackIDs.push_back(0);
 	}
@@ -361,6 +373,7 @@ namespace ZE
 	{
 		MainUIState.renderer->setDrawList(MainUIState.drawer->getCurrentDrawList());
 		MainUIState.drawer->SwapBuffer();
+		MainUIState.UseScrollOffset();
 	}
 
 	void UI::UpdateMouseState(Float32 mouseX, Float32 mouseY, EButtonState mouseDown)
@@ -475,6 +488,11 @@ namespace ZE
 		{
 			MainUIState.lastTextInput.id = 0;
 		}
+	}
+
+	void UI::RecordMouseScroll(Float32 yOffset)
+	{
+		MainUIState.scrollOffsetY = yOffset;
 	}
 
 	bool UI::DoButton(const UIChar* label, const UIButtonStyle& buttonStyle /*= DefaultButtonStyle*/)
@@ -1402,7 +1420,7 @@ namespace ZE
 		}
 	}
 
-	bool UI::BeginPanel(const UIChar* panelLabel, const UIRect initialRect, const UIPanelStyle& style /*= DefaultPanelStyle*/)
+	bool UI::BeginPanel(const UIChar* panelLabel, const UIRect initialRect, bool bAutoSize , const UIPanelStyle& style /*= DefaultPanelStyle*/)
 	{
 		UInt32 _id = GetUIIDFromString(panelLabel);
 		
@@ -1412,6 +1430,9 @@ namespace ZE
 		{
 			UIPanelState panelState;
 			panelState.posAndDimension = initialRect;
+			panelState.contentSize = initialRect.m_dimension;
+			panelState.scrollOffset = 0.0f;
+			panelState.bAutoSize = bAutoSize;
 			MainUIState.panelStates[_id] = panelState;
 		}
 
@@ -1464,19 +1485,49 @@ namespace ZE
 		MainUIState.drawPosDimension = panelState.posAndDimension;
 		MainUIState.drawPosDimension.m_pos.x += 10.0f;
 		MainUIState.drawPosDimension.m_pos.y += style.headerHeight + 10.0f;
-		MainUIState.drawPosDimension.m_dimension.x -= 20.0f;
+		MainUIState.drawPosDimension.m_dimension.x -= 40.0f;
+		MainUIState.drawPosDimension.m_dimension.y -= style.headerHeight + 15.0f;
 
 		MainUIState.drawDirectionStack.push_back(MainUIState.drawDirection);
 		MainUIState.drawDirection = UIVector2(0.0f, 1.0f);
+		
+		// Draw Scroll bar
+		Float32 contentDimensionY = panelState.posAndDimension.m_dimension.y - (style.headerHeight + 15.0f);
+		Float32 adjustedContentSizeY = panelState.contentSize.y - (style.headerHeight + 15.0f);
+		if ( !panelState.bAutoSize && contentDimensionY < adjustedContentSizeY)
+		{
+			if (MainUIState.drawPosDimension.isContain(UIVector2{ MainUIState.mouseX, MainUIState.mouseY }))
+			{
+				Float32 mouseScroll = MainUIState.UseScrollOffset();
+				panelState.scrollOffset += mouseScroll * -10.0f;
+				panelState.scrollOffset = UICLAMP(0.0f, adjustedContentSizeY - contentDimensionY, panelState.scrollOffset);
+			}
+			panelState.scrollOffset = DoScrollBar(UIVector2(panelState.posAndDimension.m_pos.x + panelState.posAndDimension.m_dimension.x - 10.0f, panelState.posAndDimension.m_pos.y + style.headerHeight + 10.0f), panelState.scrollOffset, contentDimensionY, adjustedContentSizeY);
+		}
+		else
+		{
+			panelState.scrollOffset = 0.0f;
+		}
+
+		if (panelState.bAutoSize)
+		{
+			panelState.posAndDimension.m_dimension.y = panelState.contentSize.y;
+		}
+
+		MainUIState.drawer->PushRectMask(MainUIState.drawPosDimension);
+
+		MainUIState.drawPosDimension.m_pos.y -= panelState.scrollOffset;
 
 		return true;
 	}
 
 	void UI::EndPanel()
 	{
+		MainUIState.drawer->PopMask();
+
 		UInt32 parentId = StackIDs.back();
 		UIPanelState& panelState = MainUIState.panelStates[parentId]; 
-		panelState.posAndDimension.m_dimension.y = MainUIState.drawPosDimension.m_pos.y - panelState.posAndDimension.m_pos.y + 10.0f;
+		panelState.contentSize.y = MainUIState.drawPosDimension.m_pos.y - ( panelState.posAndDimension.m_pos.y - panelState.scrollOffset );
 
 		UIRect newRect = MainUIState.drawPosDimensionStack.back();
 		MainUIState.drawPosDimension = newRect;
@@ -1731,6 +1782,92 @@ namespace ZE
 		MainUIState.drawPosDimensionStack.pop_back();
 
 		MainUIState.currentMenuLevel--;
+	}
+
+	float UI::DoScrollBar(const UIVector2& pos, float currentOffset, float directionSize, float actualSize, EDirection scrollDirection /*= DIR_VERTICAL*/, const UIScrollBarStyle& scrollBarStyle /*= DefaultScrollBarStyle*/)
+	{
+		float returnOffset = currentOffset;
+
+		UInt32 id = 0;
+		if (scrollDirection == DIR_HORIZONTAL)
+		{
+			id = GetUIIDFromString("ScrollBarH");
+		}
+		else
+		{
+			id = GetUIIDFromString("ScrollBarV");
+		}
+
+		// Calculate button rect
+		Float32 localOffset = currentOffset / actualSize * directionSize;
+		Float32 localSize = directionSize / actualSize * directionSize;
+
+		UIRect buttonRect;
+		buttonRect.m_pos.x = scrollDirection == DIR_HORIZONTAL ? localOffset + pos.x : pos.x;
+		buttonRect.m_pos.y = scrollDirection == DIR_VERTICAL ? localOffset + pos.y : pos.y;
+		buttonRect.m_dimension.x = scrollDirection == DIR_HORIZONTAL ? localSize : scrollBarStyle.scrollButtonSize;
+		buttonRect.m_dimension.y = scrollDirection == DIR_VERTICAL ? localSize : scrollBarStyle.scrollButtonSize;
+
+		static Float32 mouseOffset = 0.0f;
+
+		bool mouseInside = buttonRect.isContain(UIVector2{ MainUIState.mouseX, MainUIState.mouseY });
+		if (mouseInside && MainUIState.mouseState == BUTTON_DOWN)
+		{
+			if (MainUIState.activeItem.id != id)
+			{
+				mouseOffset = scrollDirection == DIR_VERTICAL ? MainUIState.mouseY - buttonRect.m_pos.y : MainUIState.mouseX - buttonRect.m_pos.x;
+			}
+			MainUIState.activeItem.id = id;
+		}
+		else if (mouseInside)
+		{
+			MainUIState.hotItem.id = id;
+			if (MainUIState.activeItem.id == id) { MainUIState.activeItem.id = 0; }
+		}
+		else
+		{
+			if (MainUIState.hotItem.id == id) { MainUIState.hotItem.id = 0; }
+			if (MainUIState.activeItem.id == id && MainUIState.mouseState != BUTTON_DOWN) { MainUIState.activeItem.id = 0; }
+		}
+		
+		// Handle offset changed
+		if (MainUIState.activeItem.id == id)
+		{
+			Float32 MaxOffset = actualSize - directionSize;
+			if (scrollDirection == DIR_VERTICAL)
+			{
+				returnOffset = ( MainUIState.mouseY - mouseOffset - pos.y ) * actualSize / directionSize;
+			}
+			else
+			{
+				returnOffset = ( MainUIState.mouseX - mouseOffset - pos.x ) * actualSize / directionSize;
+			}
+			returnOffset = UICLAMP(0.0f, MaxOffset, returnOffset);
+		}
+
+		UIRect scrollRect;
+		scrollRect.m_pos.x = pos.x + (scrollDirection == DIR_VERTICAL ? (scrollBarStyle.scrollButtonSize - scrollBarStyle.scrollLineSize ) *0.5f : 0.0f);
+		scrollRect.m_pos.y = pos.y + (scrollDirection == DIR_HORIZONTAL ? (scrollBarStyle.scrollButtonSize - scrollBarStyle.scrollLineSize) *0.5f : 0.0f);
+		scrollRect.m_dimension.x = scrollDirection == DIR_HORIZONTAL ? directionSize : scrollBarStyle.scrollLineSize;
+		scrollRect.m_dimension.y = scrollDirection == DIR_VERTICAL ? directionSize : scrollBarStyle.scrollLineSize;
+
+		MainUIState.drawer->DrawRect(scrollRect, scrollBarStyle.scrollBar.fillColor);
+
+		if (MainUIState.activeItem.id == id)
+		{
+			MainUIState.drawer->DrawRect(buttonRect, scrollBarStyle.scrollButton.down.fillColor);
+		}
+		else if (MainUIState.hotItem.id == id)
+		{
+			MainUIState.drawer->DrawRect(buttonRect, scrollBarStyle.scrollButton.hover.fillColor);
+		}
+		else
+		{
+			MainUIState.drawer->DrawRect(buttonRect, scrollBarStyle.scrollButton.up.fillColor);
+		}
+
+		return returnOffset;
+
 	}
 
 	void UI::DoText(const UIChar* text, const UIVector4& fillColor /*= UIVector4(1.0f)*/, const UIFontStyle& fontStyle /*= DefaultFontStyle*/)
@@ -2117,7 +2254,7 @@ namespace ZE
 
 	void UIDrawer::DrawShape(UIArray<UIVector2>& points, const UIVector4& fillColor)
 	{
-
+		// #TODO
 	}
 
 	void UIDrawer::DrawText(UIVector2& pos, const UIVector4& fillColor, UIFont* font, const UIChar* text, Float32 scale /*= 1.0f*/, bool bWordWrap /*= false*/, Float32 maxWidth /*= 0*/, ETextAlign wrapTextAlign /*= TEXT_LEFT*/, const UIVector2& dim, Int32* lineCount)
@@ -2175,6 +2312,61 @@ namespace ZE
 		m_currentDrawList = m_currentDrawList == &m_drawLists[0] ? &m_drawLists[1] : &m_drawLists[0];
 	}
 
+
+	void UIDrawer::PushRectMask(const UIRect& rect)
+	{
+		UIDrawItem* drawItem = m_currentDrawList->getNextDrawItem();
+
+		drawItem->m_layer = m_currentLayer;
+		drawItem->m_Mask = DRAW_MASK_PUSH;
+
+		Float32 depth = 0.1f;
+		UIVector4 fillColor(0.0f);
+
+#if defined(ZUI_USE_RECT_INSTANCING)
+		drawItem->m_instances.push_back(UIDrawInstance{ rect.m_pos, depth, rect.m_dimension, rect.m_roundness, fillColor });
+		drawItem->m_bUsingRectInstance = true;
+#else
+		UIVector2 positions[4] = { rect.m_pos,
+		{ rect.m_pos.x + rect.m_dimension.x, rect.m_pos.y },
+		{ rect.m_pos.x, rect.m_pos.y + rect.m_dimension.y },
+			rect.m_pos + rect.m_dimension };
+		UIVector2 texCoords[4] = { { 0.0f, 0.0f },{ 1.0f, 0.0f },{ 0.0f, 1.0f },{ 1.0f, 1.0f } };
+
+		drawItem->m_vertices.push_back(UIVertex{ positions[0], depth, texCoords[0], fillColor });
+		drawItem->m_vertices.push_back(UIVertex{ positions[1], depth, texCoords[1], fillColor });
+		drawItem->m_vertices.push_back(UIVertex{ positions[3], depth, texCoords[3], fillColor });
+
+		drawItem->m_vertices.push_back(UIVertex{ positions[0], depth, texCoords[0], fillColor });
+		drawItem->m_vertices.push_back(UIVertex{ positions[3], depth, texCoords[3], fillColor });
+		drawItem->m_vertices.push_back(UIVertex{ positions[2], depth, texCoords[2], fillColor });
+
+		drawItem->m_roundness = rect.m_roundness;
+		drawItem->m_shapeDimension = rect.m_dimension;
+#endif
+
+		PushMaskDrawStack.push_back(drawItem);
+	}
+
+	void UIDrawer::PopMask()
+	{
+		UIDrawItem* drawItem = m_currentDrawList->getNextDrawItem();
+		UIDrawItem* pushMaskDrawItem = PushMaskDrawStack.back();
+
+		drawItem->m_Mask = DRAW_MASK_POP;
+		drawItem->m_layer = m_currentLayer;
+
+#if defined(ZUI_USE_RECT_INSTANCING)
+		drawItem->m_instances = pushMaskDrawItem->m_instances;
+		drawItem->m_bUsingRectInstance = true;
+#else
+		drawItem->m_roundness = pushMaskDrawItem->m_roundness;
+		drawItem->m_shapeDimension = pushMaskDrawItem->m_shapeDimension;
+		drawItem->m_vertices = pushMaskDrawItem->m_vertices;
+#endif
+
+		PushMaskDrawStack.pop_back();
+	}
 
 	ZE::Int32 UIDrawList::itemCount() const
 	{
@@ -2269,6 +2461,7 @@ namespace ZE
 		m_bUsingRectInstance = false;
 		m_layer = 0;
 		m_bCrop = false;
+		m_Mask = DRAW_MASK_NONE;
 	}
 
 	bool UIRect::isContain(const UIVector2& pos) const
@@ -2836,6 +3029,13 @@ namespace ZE
 	bool StringHelper::NumberFilterChar(UIChar keyChar)
 	{
 		return (keyChar >= '0' && keyChar <= '9') || keyChar == '.';
+	}
+
+	ZE::Float32 UIState::UseScrollOffset()
+	{
+		Float32 returnScroll = scrollOffsetY;
+		scrollOffsetY = 0.0f;
+		return returnScroll;
 	}
 
 }

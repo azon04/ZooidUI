@@ -56,6 +56,8 @@ namespace ZE
 		void setTextData(const UIArray<UIVertex>& vertices);
 		void setInstanceDrawData(const UIArray<UIDrawInstance>& instances);
 		void processDrawItem(UIDrawItem* drawItem);
+		void pushMask();
+		void popMask();
 
 		int m_width;
 		int m_height;
@@ -83,6 +85,8 @@ namespace ZE
 		GLuint VBO_text;
 		GLuint VAO_text;
 		size_t maxTextSize = 1024;
+
+		UInt32 maskCount = 0;
 
 		UIArray<UInt32> m_textures;
 	};

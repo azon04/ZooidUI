@@ -79,6 +79,11 @@ void mousePositionCallback(GLFWwindow* window, double xPos, double yPos)
 	mouseY = yPos;
 }
 
+void scrollCallback(GLFWwindow* window, double xOffset, double yOffset)
+{
+	ZE::UI::RecordMouseScroll(yOffset);
+}
+
 void mouseButtonUpdateCallback(GLFWwindow* window, int button, int action, int mods)
 {
 	buttonState = action == GLFW_RELEASE ? ZE::BUTTON_UP : ZE::BUTTON_DOWN;
@@ -102,6 +107,7 @@ int main()
 	glfwSetFramebufferSizeCallback((GLFWwindow*)renderer->getWindowContext(), windowFrameBufferSizeCallback);
 	glfwSetKeyCallback((GLFWwindow*)renderer->getWindowContext(), keyCallback);
 	glfwSetCharCallback((GLFWwindow*)renderer->getWindowContext(), charInputCallback);
+	glfwSetScrollCallback((GLFWwindow*)renderer->getWindowContext(), scrollCallback);
 
 	ZE::UITexture* panelBg = ZE::UI::LoadTexture("../../Resource/Textures/PanelBg.png");
 
@@ -152,7 +158,7 @@ int main()
 		sprintf_s(buffer, "FPS: %.1f", 1.0f / (totalTime / 1000.0f));
 		ZE::UI::DrawTextInPos(ZE::UIVector2{ 0.0f, ZE::UI::GetScreenHeight() - 1.0f * ZE::UI::DefaultFont->calculateTextHeight(1.0f) }, buffer, ZE::UIVector4{ 1.0f });
 
-		if (ZE::UI::BeginPanel("Text Panel...", ZE::UIRect(ZE::UIVector2(100.0f, 100.f), ZE::UIVector2(250.0f, 500.0f))))
+		if (ZE::UI::BeginPanel("Text Panel...", ZE::UIRect(ZE::UIVector2(150.0f, 100.f), ZE::UIVector2(250.0f, 300.0f))))
 		{
 			ZE::UI::DoText("Test Text");
 			if (ZE::UI::DoButton("Button"))

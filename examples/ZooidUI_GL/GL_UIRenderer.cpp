@@ -5,6 +5,7 @@
 #include "Shader.h"
 
 #include <iostream>
+#include <assert.h>
 
 #if WIN32 || WIN64
 extern "C"
@@ -246,7 +247,7 @@ namespace ZE
 	{
 		glfwPollEvents();
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
 		UIArray<UIDrawItem*> secondPass;
 		for (int i = 0; i < m_drawList->itemCount(); i++)
@@ -267,6 +268,7 @@ namespace ZE
 		}
 		
 		glfwSwapBuffers(m_window);
+		maskCount = 0;
 	}
 
 	void GL_UIRenderer::processDrawItem(UIDrawItem* drawItem)
@@ -275,6 +277,31 @@ namespace ZE
 		bool isUsingRect = drawItem->isUsingRectInstance();
 		bool isInstance = isUsingRect;
 		GLuint VAO = isUsingRect ? VAO_rect : VAO_draw;
+
+		if (drawItem->isDrawMask())
+		{
+			if (drawItem->getDrawMask() == DRAW_MASK_PUSH)
+			{
+				pushMask();
+				glStencilFunc(GL_ALWAYS, maskCount, 0xFF);
+				glStencilMask(0xFF);
+				glDisable(GL_DEPTH_TEST);
+				glStencilOp(GL_KEEP, GL_KEEP, GL_INCR);
+			}
+			else
+			{
+				glStencilFunc(GL_ALWAYS, maskCount, 0xFF);
+				glStencilMask(0xFF);
+				glDisable(GL_DEPTH_TEST);
+				glStencilOp(GL_KEEP, GL_KEEP, GL_DECR);
+			}
+		}
+		else if (maskCount)
+		{
+			glStencilFunc(GL_EQUAL, maskCount, 0xFF);
+			glStencilMask(0x00);
+			glEnable(GL_DEPTH_TEST);
+		}
 
 		Shader* shader = m_drawShader;
 		if (drawItem->getTextureHandle() > 0)
@@ -345,6 +372,33 @@ namespace ZE
 			glBindVertexArray(VAO);
 			glDrawArraysInstanced(GL_TRIANGLES, 0, 6, drawItem->getInstances().size());
 			glBindVertexArray(0);
+		}
+
+		if (drawItem->isDrawMask())
+		{
+			if (drawItem->getDrawMask() == DRAW_MASK_POP)
+			{
+				popMask();
+			}
+		}
+	}
+
+	void GL_UIRenderer::pushMask()
+	{
+		maskCount++;
+		if (maskCount == 1)
+		{
+			glEnable(GL_STENCIL_TEST);
+		}
+	}
+
+	void GL_UIRenderer::popMask()
+	{
+		assert(maskCount > 0);
+		maskCount--;
+		if (maskCount == 0)
+		{
+			glDisable(GL_STENCIL_TEST);
 		}
 	}
 
