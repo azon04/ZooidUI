@@ -149,6 +149,8 @@ namespace ZE
 		Float32 m_roundness = 0.0f;
 
 		bool isContain(const UIVector2& pos) const;
+
+		UIRect intersect(const UIRect& otherRect);
 	};
 
 
@@ -194,8 +196,7 @@ namespace ZE
 		Int32 screenHeight;
 
 		// Mouse State
-		Float32 mouseX;
-		Float32 mouseY;
+		UIVector2 mousePos;
 		Float32 mouseDeltaX;
 		Float32 mouseDeltaY;
 		Float32 scrollOffsetY;
@@ -240,6 +241,9 @@ namespace ZE
 
 		// Menu Info stack
 		UIArray<UIMenuInfo> MenuStack;
+
+		// Interaction Rect Stack
+		UIArray<UIRect> InteractionRectStack;
 
 		// Panel State Map
 		UIHashMap<UInt32, UIPanelState> panelStates;
@@ -574,6 +578,13 @@ namespace ZE
 
 		UInt32 GetUIIDFromString(const UIChar* textData, UInt32 length = 255);
 		UInt32 GetUIIDFromPointer(const void* pData);
+
+		// Interaction rect helper
+		void PushInteractionRect(const UIRect& rect);
+		void PopInteractionRect();
+		void ClearInteractionRect();
+		UIRect CalculateInteractionRect(const UIRect& rect);
+		bool CheckMouseInside(const UIRect& rect);
 
 		// Function
 		void Init(Int32 width, Int32 height);

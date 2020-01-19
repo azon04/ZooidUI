@@ -147,6 +147,45 @@ namespace ZE
 		return ComputeHashPointer(pData, parent);
 	}
 
+	void UI::PushInteractionRect(const UIRect& rect)
+	{
+		if (MainUIState.InteractionRectStack.size() == 0)
+		{
+			MainUIState.InteractionRectStack.push_back(rect);
+		}
+		else
+		{
+			MainUIState.InteractionRectStack.push_back(MainUIState.InteractionRectStack.back().intersect(rect));
+		}
+	}
+
+	void UI::PopInteractionRect()
+	{
+		MainUIState.InteractionRectStack.pop_back();
+	}
+
+	void UI::ClearInteractionRect()
+	{
+		MainUIState.InteractionRectStack.clear();
+	}
+
+	ZE::UIRect UI::CalculateInteractionRect(const UIRect& rect)
+	{
+		if (MainUIState.InteractionRectStack.size() == 0)
+		{
+			return rect;
+		}
+		else
+		{
+			return (MainUIState.InteractionRectStack.back().intersect(rect));
+		}
+	}
+
+	bool UI::CheckMouseInside(const UIRect& rect)
+	{
+		return rect.isContain(MainUIState.mousePos) && CalculateInteractionRect(rect).isContain(MainUIState.mousePos);
+	}
+
 	// Helper function: Get Length of the UIChar buffer
 	Int32 TextLength(const UIChar* text)
 	{
@@ -367,6 +406,7 @@ namespace ZE
 	{
 		MainUIState.drawer->Reset();
 		MainUIState.timeFromStart += MainUIState.mainTimer.ResetAndGetDeltaMS();
+		ClearInteractionRect();
 	}
 
 	void UI::EndFrame()
@@ -378,10 +418,10 @@ namespace ZE
 
 	void UI::UpdateMouseState(Float32 mouseX, Float32 mouseY, EButtonState mouseDown)
 	{
-		MainUIState.mouseDeltaX = mouseX - MainUIState.mouseX;
-		MainUIState.mouseDeltaY = mouseY - MainUIState.mouseY;
-		MainUIState.mouseX = mouseX;
-		MainUIState.mouseY = mouseY;
+		MainUIState.mouseDeltaX = mouseX - MainUIState.mousePos.x;
+		MainUIState.mouseDeltaY = mouseY - MainUIState.mousePos.y;
+		MainUIState.mousePos.x = mouseX;
+		MainUIState.mousePos.y = mouseY;
 		MainUIState.lastMouseState = MainUIState.mouseState;
 		MainUIState.mouseState = mouseDown;
 	}
@@ -511,7 +551,7 @@ namespace ZE
 
 	bool UI::DoButtonEx(const UIChar* label, UIRect& rect, const UIButtonStyle& buttonStyle)
 	{
-		bool mouseInside = rect.isContain(UIVector2{ MainUIState.mouseX, MainUIState.mouseY });
+		const bool mouseInside = CheckMouseInside(rect);
 		bool bPressed = false;
 		
 		UInt32 _id = GetUIIDFromString(label);
@@ -587,7 +627,7 @@ namespace ZE
 		rect.m_dimension.x = (style->texture ? style->textureSize.x : 0) + font->calculateTextLength(text, 1.0f);
 		rect.m_dimension.y = UIMAX((style->texture ? style->textureSize.y : 0), font->calculateTextHeight(1.0f));
 
-		bool mouseInside = rect.isContain(UIVector2{ MainUIState.mouseX, MainUIState.mouseY });
+		const bool mouseInside = CheckMouseInside(rect);
 		bool bPressed = false;
 		if (mouseInside && MainUIState.mouseState == EButtonState::BUTTON_DOWN)
 		{
@@ -677,7 +717,7 @@ namespace ZE
 		rect.m_dimension.x = (style->texture ? style->textureSize.x : 0) + font->calculateTextLength(text, 1.0f);
 		rect.m_dimension.y = UIMAX((style->texture ? style->textureSize.y : 0), font->calculateTextHeight(1.0f));
 
-		bool mouseInside = rect.isContain(UIVector2{ MainUIState.mouseX, MainUIState.mouseY });
+		const bool mouseInside = CheckMouseInside(rect);
 		bool bPressed = false;
 		if (mouseInside && MainUIState.mouseState == EButtonState::BUTTON_DOWN)
 		{
@@ -845,7 +885,7 @@ namespace ZE
 		headerRect.m_dimension.x = panelRect.m_dimension.x - padding * 2;
 		headerRect.m_dimension.y = headerHeight;
 
-		bool mouseInside = iconRect.isContain(UIVector2{ MainUIState.mouseX, MainUIState.mouseY });
+		const bool mouseInside = CheckMouseInside(iconRect);
 		bool bPressed = false;
 		if (mouseInside && MainUIState.mouseState == EButtonState::BUTTON_DOWN)
 		{
@@ -887,8 +927,8 @@ namespace ZE
 
 	void UI::DoSliderEx(const UIRect& rect, Float32* percent, const UISliderStyle& sliderStyle)
 	{
-		bool mouseInside = rect.isContain(UIVector2{ MainUIState.mouseX, MainUIState.mouseY });
-		UInt32 _id = GetUIIDFromPointer(percent);
+		const bool mouseInside = CheckMouseInside(rect);
+		const UInt32 _id = GetUIIDFromPointer(percent);
 
 		if (mouseInside && MainUIState.mouseState == EButtonState::BUTTON_DOWN)
 		{
@@ -907,7 +947,7 @@ namespace ZE
 
 		if (MainUIState.activeItem.id == _id)
 		{
-			*percent = (MainUIState.mouseX - rect.m_pos.x) * 1.0f / rect.m_dimension.x;
+			*percent = (MainUIState.mousePos.x - rect.m_pos.x) * 1.0f / rect.m_dimension.x;
 		}
 
 		UIRect sliderRect;
@@ -953,7 +993,7 @@ namespace ZE
 	void UI::DoDropDownEx(const UIRect& rect, Int32* selectedIdx, const UIChar** textOptions, Int32 optionCount, const UIDropdownStyle& style /*= DefaultDropdownStyle*/)
 	{
 		bool bPressed = false;
-		UInt32 _id = GetUIIDFromPointer(selectedIdx);
+		const UInt32 _id = GetUIIDFromPointer(selectedIdx);
 
 		UIRect selectionRect = rect;
 		if (cacheId == _id)
@@ -961,7 +1001,7 @@ namespace ZE
 			selectionRect.m_dimension.y += rect.m_dimension.y * optionCount;
 		}
 
-		bool mouseInside = selectionRect.isContain(UIVector2(MainUIState.mouseX, MainUIState.mouseY));
+		const bool mouseInside = CheckMouseInside(selectionRect);
 
 		if (mouseInside && MainUIState.mouseState == EButtonState::BUTTON_DOWN)
 		{
@@ -1043,10 +1083,9 @@ namespace ZE
 			UIRect selTextRect = rect;
 			selTextRect.m_pos.y += rect.m_dimension.y;
 			selTextRect.m_pos.x = textRect.m_pos.x;
-			UIVector2 mousePos(MainUIState.mouseX, MainUIState.mouseY);
 			for (int i = 0; i < optionCount; i++)
 			{
-				if (selTextRect.isContain(mousePos))
+				if (CheckMouseInside(selTextRect))
 				{
 					selRect.m_pos.y = selTextRect.m_pos.y;
 					MainUIState.drawer->DrawRect(selRect, style.selectorHoverStyle.fillColor);
@@ -1079,8 +1118,8 @@ namespace ZE
 
 	void UI::DoTextInputEx(const UIRect& rect, UIChar* bufferChar, Int32 bufferCount, const UITextInputStyle& style /*= DefaultTextInputStyle*/)
 	{
-		bool mouseInside = rect.isContain(UIVector2(MainUIState.mouseX, MainUIState.mouseY));
-		UIRect textRect(UIVector2(rect.m_pos.x + 10, rect.m_pos.y), UIVector2(rect.m_dimension.x - 20, rect.m_dimension.y));
+		const bool mouseInside = CheckMouseInside(rect);
+		const UIRect textRect(UIVector2(rect.m_pos.x + 10, rect.m_pos.y), UIVector2(rect.m_dimension.x - 20, rect.m_dimension.y));
 		Int32 textInputScrollPos = 0;
 
 		UInt32 _id = GetUIIDFromPointer(bufferChar);
@@ -1103,7 +1142,7 @@ namespace ZE
 			else
 			{
 				// Update text cursor
-				MainUIState.textInputCurrentPos = MainUIState.textInputScrollPos + style.fontStyle.font->calculatePositionAtLength(bufferChar + MainUIState.textInputScrollPos * sizeof(UIChar), MainUIState.mouseX - textRect.m_pos.x, style.fontStyle.fontScale);
+				MainUIState.textInputCurrentPos = MainUIState.textInputScrollPos + style.fontStyle.font->calculatePositionAtLength(bufferChar + MainUIState.textInputScrollPos * sizeof(UIChar), MainUIState.mousePos.x - textRect.m_pos.x, style.fontStyle.fontScale);
 			}
 			MainUIState.activeItem.id = _id;
 		}
@@ -1220,11 +1259,12 @@ namespace ZE
 	void UI::DoNumberInputEx(const UIRect& rect, Float32* number, const UITextInputStyle& style /*= DefaultTextInputStyle*/, bool asInt /*= false*/)
 	{
 		static UIChar charBuffer[256];
-		UInt32 _id = GetUIIDFromPointer(number);
+		const UInt32 _id = GetUIIDFromPointer(number);
+		const bool mouseInside = CheckMouseInside(rect);
+
 		UIChar* bufferChar = MainUIState.activeItem.id == _id ? MainUIState.textTempBuffer : charBuffer;
 		
-		bool mouseInside = rect.isContain(UIVector2(MainUIState.mouseX, MainUIState.mouseY));
-		UIRect textRect(UIVector2(rect.m_pos.x + 10, rect.m_pos.y), UIVector2(rect.m_dimension.x - 20, rect.m_dimension.y));
+		const UIRect textRect(UIVector2(rect.m_pos.x + 10, rect.m_pos.y), UIVector2(rect.m_dimension.x - 20, rect.m_dimension.y));
 		Int32 textInputScrollPos = 0;
 
 		static Int32 lastMaxLength = 100000;
@@ -1245,7 +1285,7 @@ namespace ZE
 			else
 			{
 				// Update text cursor
-				MainUIState.textInputCurrentPos = MainUIState.textInputScrollPos + style.fontStyle.font->calculatePositionAtLength(MainUIState.textTempBuffer + MainUIState.textInputScrollPos * sizeof(UIChar), MainUIState.mouseX - textRect.m_pos.x, style.fontStyle.fontScale);
+				MainUIState.textInputCurrentPos = MainUIState.textInputScrollPos + style.fontStyle.font->calculatePositionAtLength(MainUIState.textTempBuffer + MainUIState.textInputScrollPos * sizeof(UIChar), MainUIState.mousePos.x - textRect.m_pos.x, style.fontStyle.fontScale);
 			}
 			MainUIState.activeItem.id = _id;
 
@@ -1422,7 +1462,7 @@ namespace ZE
 
 	bool UI::BeginPanel(const UIChar* panelLabel, const UIRect initialRect, bool bAutoSize , const UIPanelStyle& style /*= DefaultPanelStyle*/)
 	{
-		UInt32 _id = GetUIIDFromString(panelLabel);
+		const UInt32 _id = GetUIIDFromString(panelLabel);
 		
 		StackIDs.push_back(_id);
 
@@ -1444,7 +1484,7 @@ namespace ZE
 		headerRect.m_dimension.y = style.headerHeight;
 
 		bool bJustActive = false;
-		bool mouseInside = headerRect.isContain(UIVector2{ MainUIState.mouseX, MainUIState.mouseY });
+		const bool mouseInside = CheckMouseInside(headerRect);
 		if ((MainUIState.activeItem.id == _id || mouseInside) && MainUIState.mouseState == EButtonState::BUTTON_DOWN)
 		{
 			bJustActive = MainUIState.activeItem.id != _id;
@@ -1496,7 +1536,7 @@ namespace ZE
 		Float32 adjustedContentSizeY = panelState.contentSize.y - (style.headerHeight + 15.0f);
 		if ( !panelState.bAutoSize && contentDimensionY < adjustedContentSizeY)
 		{
-			if (MainUIState.drawPosDimension.isContain(UIVector2{ MainUIState.mouseX, MainUIState.mouseY }))
+			if (CheckMouseInside(MainUIState.drawPosDimension))
 			{
 				Float32 mouseScroll = MainUIState.UseScrollOffset();
 				panelState.scrollOffset += mouseScroll * -10.0f;
@@ -1515,6 +1555,7 @@ namespace ZE
 		}
 
 		MainUIState.drawer->PushRectMask(MainUIState.drawPosDimension);
+		PushInteractionRect(MainUIState.drawPosDimension);
 
 		MainUIState.drawPosDimension.m_pos.y -= panelState.scrollOffset;
 
@@ -1524,6 +1565,7 @@ namespace ZE
 	void UI::EndPanel()
 	{
 		MainUIState.drawer->PopMask();
+		PopInteractionRect();
 
 		UInt32 parentId = StackIDs.back();
 		UIPanelState& panelState = MainUIState.panelStates[parentId]; 
@@ -1574,7 +1616,7 @@ namespace ZE
 	{
 		UIFontStyle& fontStyle = DefaultMenuStyle.fontStyle;
 
-		UInt32 menuID = GetUIIDFromString(menuLabel);
+		const UInt32 menuID = GetUIIDFromString(menuLabel);
 		UIRect rect = MainUIState.drawPosDimension;
 
 		rect.m_dimension.x = fontStyle.font->calculateTextLength(menuLabel, fontStyle.fontScale) + 2.0f * DefaultMenuStyle.menuPadding;
@@ -1582,7 +1624,7 @@ namespace ZE
 		// Update Draw Position
 		MainUIState.drawPosDimension.m_pos.x += rect.m_dimension.x;
 
-		bool mouseInside = rect.isContain(UIVector2{ MainUIState.mouseX, MainUIState.mouseY });
+		const bool mouseInside = CheckMouseInside(rect);
 
 		if (mouseInside && MainUIState.mouseState == BUTTON_DOWN)
 		{
@@ -1694,7 +1736,7 @@ namespace ZE
 		UIFontStyle& fontStyle = DefaultSubMenuStyle.fontStyle;
 		UIStyle& backgroundStyle = DefaultSubMenuStyle.background;
 
-		UInt32 menuID = GetUIIDFromString(subMenuLabel);
+		const UInt32 menuID = GetUIIDFromString(subMenuLabel);
 		UIRect rect = MainUIState.drawPosDimension;
 		bool bPressed = false;
 
@@ -1703,7 +1745,7 @@ namespace ZE
 		// Update Draw Position
 		MainUIState.drawPosDimension.m_pos.y += rect.m_dimension.y;
 
-		bool mouseInside = rect.isContain(UIVector2{ MainUIState.mouseX, MainUIState.mouseY });
+		const bool mouseInside = CheckMouseInside(rect);
 
 		if (mouseInside && MainUIState.mouseState == BUTTON_DOWN)
 		{
@@ -1788,19 +1830,11 @@ namespace ZE
 	{
 		float returnOffset = currentOffset;
 
-		UInt32 id = 0;
-		if (scrollDirection == DIR_HORIZONTAL)
-		{
-			id = GetUIIDFromString("ScrollBarH");
-		}
-		else
-		{
-			id = GetUIIDFromString("ScrollBarV");
-		}
+		const UInt32 id = scrollDirection == DIR_HORIZONTAL ? GetUIIDFromString("ScrollBarH") : GetUIIDFromString("ScrollBarV");
 
 		// Calculate button rect
-		Float32 localOffset = currentOffset / actualSize * directionSize;
-		Float32 localSize = directionSize / actualSize * directionSize;
+		const Float32 localOffset = currentOffset / actualSize * directionSize;
+		const Float32 localSize = directionSize / actualSize * directionSize;
 
 		UIRect buttonRect;
 		buttonRect.m_pos.x = scrollDirection == DIR_HORIZONTAL ? localOffset + pos.x : pos.x;
@@ -1810,12 +1844,12 @@ namespace ZE
 
 		static Float32 mouseOffset = 0.0f;
 
-		bool mouseInside = buttonRect.isContain(UIVector2{ MainUIState.mouseX, MainUIState.mouseY });
+		const bool mouseInside = CheckMouseInside(buttonRect);
 		if (mouseInside && MainUIState.mouseState == BUTTON_DOWN)
 		{
 			if (MainUIState.activeItem.id != id)
 			{
-				mouseOffset = scrollDirection == DIR_VERTICAL ? MainUIState.mouseY - buttonRect.m_pos.y : MainUIState.mouseX - buttonRect.m_pos.x;
+				mouseOffset = scrollDirection == DIR_VERTICAL ? MainUIState.mousePos.y - buttonRect.m_pos.y : MainUIState.mousePos.x - buttonRect.m_pos.x;
 			}
 			MainUIState.activeItem.id = id;
 		}
@@ -1836,11 +1870,11 @@ namespace ZE
 			Float32 MaxOffset = actualSize - directionSize;
 			if (scrollDirection == DIR_VERTICAL)
 			{
-				returnOffset = ( MainUIState.mouseY - mouseOffset - pos.y ) * actualSize / directionSize;
+				returnOffset = ( MainUIState.mousePos.y - mouseOffset - pos.y ) * actualSize / directionSize;
 			}
 			else
 			{
-				returnOffset = ( MainUIState.mouseX - mouseOffset - pos.x ) * actualSize / directionSize;
+				returnOffset = ( MainUIState.mousePos.x - mouseOffset - pos.x ) * actualSize / directionSize;
 			}
 			returnOffset = UICLAMP(0.0f, MaxOffset, returnOffset);
 		}
@@ -2469,6 +2503,29 @@ namespace ZE
 		UIVector2 diff = pos - m_pos;
 
 		return diff.x >= 0 && diff.x <= m_dimension.x && diff.y >= 0 && diff.y <= m_dimension.y;
+	}
+
+	UIRect UIRect::intersect(const UIRect& inRect)
+	{
+		UIRect result;
+		
+		UIVector2 bottomRight = m_pos + m_dimension;
+		UIVector2 otherBottomRight = inRect.m_pos + inRect.m_dimension;
+
+		if (((inRect.m_pos.x > m_pos.x && inRect.m_pos.x < bottomRight.x)
+			|| (otherBottomRight.x > m_pos.x && otherBottomRight.x < bottomRight.x)
+			&& 
+			((inRect.m_pos.y > m_pos.y && inRect.m_pos.y < bottomRight.y))
+			|| (otherBottomRight.y > m_pos.y && otherBottomRight.y < bottomRight.y)))
+		{
+			result.m_pos.x = UIMAX(m_pos.x, inRect.m_pos.x);
+			result.m_pos.y = UIMAX(m_pos.y, inRect.m_pos.y);
+			bottomRight.x = UIMIN(bottomRight.x, otherBottomRight.x);
+			bottomRight.y = UIMIN(bottomRight.y, otherBottomRight.y);
+			result.m_dimension = bottomRight - result.m_pos;
+		}
+
+		return result;
 	}
 
 	ZE::UIVector2 operator+(const UIVector2& v1, const UIVector2& v2)
