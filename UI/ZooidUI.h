@@ -181,6 +181,7 @@ namespace ZE
 	// Panel State
 	struct UIPanelState : UIScrollState
 	{
+		UIVector2 headerSize;
 		bool closed;
 		bool bAutoSize;
 	};
@@ -694,6 +695,20 @@ namespace ZE
 
 		// End List View
 		void EndListView();
+
+		template<typename T, typename Func>
+		void DoListView(const UIChar* listName, const UIRect& rect, T* listItem, UInt32 itemCount, Func func)
+		{
+			BeginListView(listName, rect);
+			for (UInt32 i = 0; i < itemCount; i++)
+			{
+				func(listItem[i], i);
+			}
+			EndListView();
+		}
+
+		// Specialized function with default DoText
+		void DoListView(const UIChar* listName, const UIRect& rect, const UIChar** listItem, UInt32 itemCount);
 
 		// Menu Implementation
 

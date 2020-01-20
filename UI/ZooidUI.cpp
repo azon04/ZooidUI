@@ -1482,6 +1482,7 @@ namespace ZE
 		headerRect.m_pos = panelState.targetRect.m_pos + UIVector2{ 10.0f, 0.0f };
 		headerRect.m_dimension.x = panelState.targetRect.m_dimension.x - 20.0f;
 		headerRect.m_dimension.y = style.headerHeight;
+		panelState.headerSize = headerRect.m_dimension;
 
 		bool bJustActive = false;
 		const bool mouseInside = CheckMouseInside(headerRect);
@@ -1530,24 +1531,6 @@ namespace ZE
 
 		MainUIState.drawDirectionStack.push_back(MainUIState.drawDirection);
 		MainUIState.drawDirection = UIVector2(0.0f, 1.0f);
-		
-		// Draw Scroll bar
-		Float32 contentDimensionY = panelState.targetRect.m_dimension.y - (style.headerHeight + 15.0f);
-		Float32 adjustedContentSizeY = panelState.contentSize.y - (style.headerHeight + 15.0f);
-		if ( !panelState.bAutoSize && contentDimensionY < adjustedContentSizeY)
-		{
-			if (CheckMouseInside(MainUIState.drawPosDimension))
-			{
-				Float32 mouseScroll = MainUIState.UseScrollOffset();
-				panelState.scrollOffset += mouseScroll * -10.0f;
-				panelState.scrollOffset = UICLAMP(0.0f, adjustedContentSizeY - contentDimensionY, panelState.scrollOffset);
-			}
-			panelState.scrollOffset = DoScrollBar(UIVector2(panelState.targetRect.m_pos.x + panelState.targetRect.m_dimension.x - 10.0f, panelState.targetRect.m_pos.y + style.headerHeight + 10.0f), panelState.scrollOffset, contentDimensionY, adjustedContentSizeY);
-		}
-		else
-		{
-			panelState.scrollOffset = 0.0f;
-		}
 
 		if (panelState.bAutoSize)
 		{
@@ -1577,6 +1560,24 @@ namespace ZE
 
 		MainUIState.drawDirection = MainUIState.drawDirectionStack.back();
 		MainUIState.drawDirectionStack.pop_back();
+
+		// Draw Scroll bar
+		Float32 contentDimensionY = panelState.targetRect.m_dimension.y - (panelState.headerSize.y + 15.0f);
+		Float32 adjustedContentSizeY = panelState.contentSize.y - (panelState.headerSize.y + 15.0f);
+		if (!panelState.bAutoSize && contentDimensionY < adjustedContentSizeY)
+		{
+			if (CheckMouseInside(panelState.targetRect))
+			{
+				Float32 mouseScroll = MainUIState.UseScrollOffset();
+				panelState.scrollOffset += mouseScroll * -10.0f;
+				panelState.scrollOffset = UICLAMP(0.0f, adjustedContentSizeY - contentDimensionY, panelState.scrollOffset);
+			}
+			panelState.scrollOffset = DoScrollBar(UIVector2(panelState.targetRect.m_pos.x + panelState.targetRect.m_dimension.x - 10.0f, panelState.targetRect.m_pos.y + panelState.headerSize.y + 10.0f), panelState.scrollOffset, contentDimensionY, adjustedContentSizeY);
+		}
+		else
+		{
+			panelState.scrollOffset = 0.0f;
+		}
 
 		StackIDs.pop_back();
 	}
@@ -1616,23 +1617,6 @@ namespace ZE
 		MainUIState.drawDirectionStack.push_back(MainUIState.drawDirection);
 		MainUIState.drawDirection = UIVector2(0.0f, 1.0f);
 		
-		// Add scrollbar
-		if (scrollState.targetRect.m_dimension.y < scrollState.contentSize.y)
-		{
-			if (CheckMouseInside(MainUIState.drawPosDimension))
-			{
-				Float32 mouseScroll = MainUIState.UseScrollOffset();
-				scrollState.scrollOffset += mouseScroll * -10.0f;
-				scrollState.scrollOffset = UICLAMP(0.0f, scrollState.contentSize.y - scrollState.targetRect.m_dimension.y, scrollState.scrollOffset);
-			}
-			scrollState.scrollOffset = DoScrollBar(UIVector2(MainUIState.drawPosDimension.m_pos.x + scrollState.targetRect.m_dimension.x - 10, MainUIState.drawPosDimension.m_pos.y), scrollState.scrollOffset, scrollState.targetRect.m_dimension.y, scrollState.contentSize.y);
-		}
-		else
-		{
-			scrollState.scrollOffset = 0.0f;
-		}
-
-
 		MainUIState.drawer->PushRectMask(MainUIState.drawPosDimension);
 		PushInteractionRect(MainUIState.drawPosDimension);
 
@@ -1665,7 +1649,33 @@ namespace ZE
 		}
 		MainUIState.drawPosDimensionStack.pop_back();
 
+		// Add scrollbar
+		if (scrollState.targetRect.m_dimension.y < scrollState.contentSize.y)
+		{
+			if (CheckMouseInside(scrollState.targetRect))
+			{
+				Float32 mouseScroll = MainUIState.UseScrollOffset();
+				scrollState.scrollOffset += mouseScroll * -10.0f;
+				scrollState.scrollOffset = UICLAMP(0.0f, scrollState.contentSize.y - scrollState.targetRect.m_dimension.y, scrollState.scrollOffset);
+			}
+			scrollState.scrollOffset = DoScrollBar(UIVector2(scrollState.targetRect.m_pos.x + scrollState.targetRect.m_dimension.x - 10, scrollState.targetRect.m_pos.y), scrollState.scrollOffset, scrollState.targetRect.m_dimension.y, scrollState.contentSize.y);
+		}
+		else
+		{
+			scrollState.scrollOffset = 0.0f;
+		}
+
 		StackIDs.pop_back();
+	}
+
+	void UI::DoListView(const UIChar* listName, const UIRect& rect, const UIChar** listItem, UInt32 itemCount)
+	{
+		BeginListView(listName, rect);
+		for (UInt32 i = 0; i < itemCount; i++)
+		{
+			DoText(listItem[i]);
+		}
+		EndListView();
 	}
 
 	void UI::BeginMenu()
@@ -2599,11 +2609,11 @@ namespace ZE
 		UIVector2 bottomRight = m_pos + m_dimension;
 		UIVector2 otherBottomRight = inRect.m_pos + inRect.m_dimension;
 
-		if (((inRect.m_pos.x > m_pos.x && inRect.m_pos.x < bottomRight.x)
-			|| (otherBottomRight.x > m_pos.x && otherBottomRight.x < bottomRight.x)
+		if (((inRect.m_pos.x >= m_pos.x && inRect.m_pos.x <= bottomRight.x)
+			|| (otherBottomRight.x >= m_pos.x && otherBottomRight.x <= bottomRight.x)
 			&& 
-			((inRect.m_pos.y > m_pos.y && inRect.m_pos.y < bottomRight.y))
-			|| (otherBottomRight.y > m_pos.y && otherBottomRight.y < bottomRight.y)))
+			((inRect.m_pos.y >= m_pos.y && inRect.m_pos.y <= bottomRight.y))
+			|| (otherBottomRight.y >= m_pos.y && otherBottomRight.y <= bottomRight.y)))
 		{
 			result.m_pos.x = UIMAX(m_pos.x, inRect.m_pos.x);
 			result.m_pos.y = UIMAX(m_pos.y, inRect.m_pos.y);

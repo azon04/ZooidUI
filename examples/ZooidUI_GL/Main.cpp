@@ -136,6 +136,8 @@ int main()
 	ZE::Float32 vec3[3] = { 0.0f, 0.0f, 0.0f };
 	ZE::Float32 vec4[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
 
+	const char* listItem[5] = { "List Item 1", "List Item 2", "List Item 3", "List Item 4", "List Item 5" };
+
 	while (!renderer->requestToClose())
 	{
 		timer.Reset();
@@ -176,12 +178,19 @@ int main()
 			ZE::UI::DoVector3Input(vec3);
 			ZE::UI::DoVector4Input(vec4);
 
-			ZE::UI::BeginListView("ListPrimary", ZE::UIRect(ZE::UIVector2(0.0f, 0.0f), ZE::UIVector2(210.0f, 60.0f)));
-			ZE::UI::DoText("ListItem1");
-			ZE::UI::DoText("ListItem2");
-			ZE::UI::DoText("ListItem3");
-			ZE::UI::DoText("ListItem4");
-			ZE::UI::EndListView();
+			ZE::UI::DoListView("ListTestWithLambda", 
+				ZE::UIRect(ZE::UIVector2(0.0f, 0.0f), ZE::UIVector2(210.0f, 70.0f)), 
+				listItem, 5, 
+				[](const char*& text, ZE::UInt32 idx) 
+				{
+					ZE::UI::DoText(text);
+				}
+			);
+
+			ZE::UI::DoListView("ListTest",
+				ZE::UIRect(ZE::UIVector2(0.0f, 0.0f), ZE::UIVector2(200.0f, 70.0f)),
+				listItem, 5
+			);
 
 			ZE::UI::EndPanel();
 		}
