@@ -1469,7 +1469,7 @@ namespace ZE
 		if (!(HashMapHas(MainUIState.panelStates, _id)))
 		{
 			UIPanelState panelState;
-			panelState.posAndDimension = initialRect;
+			panelState.targetRect = initialRect;
 			panelState.contentSize = initialRect.m_dimension;
 			panelState.scrollOffset = 0.0f;
 			panelState.bAutoSize = bAutoSize;
@@ -1479,8 +1479,8 @@ namespace ZE
 		UIPanelState& panelState = MainUIState.panelStates[_id];
 
 		UIRect headerRect;
-		headerRect.m_pos = panelState.posAndDimension.m_pos + UIVector2{ 10.0f, 0.0f };
-		headerRect.m_dimension.x = panelState.posAndDimension.m_dimension.x - 20.0f;
+		headerRect.m_pos = panelState.targetRect.m_pos + UIVector2{ 10.0f, 0.0f };
+		headerRect.m_dimension.x = panelState.targetRect.m_dimension.x - 20.0f;
 		headerRect.m_dimension.y = style.headerHeight;
 
 		bool bJustActive = false;
@@ -1504,17 +1504,17 @@ namespace ZE
 		if (MainUIState.activeItem.id == _id && !bJustActive)
 		{
 			UIVector2 delta{ MainUIState.mouseDeltaX, MainUIState.mouseDeltaY };
-			panelState.posAndDimension.m_pos = panelState.posAndDimension.m_pos + delta;
+			panelState.targetRect.m_pos = panelState.targetRect.m_pos + delta;
 			headerRect.m_pos = headerRect.m_pos + delta;
 		}
 
 		if (style.panel.texture)
 		{
-			MainUIState.drawer->DrawTexture(panelState.posAndDimension, style.panel.texture, style.panel.fillColor, style.panel.textureScale, style.panel.textureOffset);
+			MainUIState.drawer->DrawTexture(panelState.targetRect, style.panel.texture, style.panel.fillColor, style.panel.textureScale, style.panel.textureOffset);
 		}
 		else
 		{
-			MainUIState.drawer->DrawRect(panelState.posAndDimension, style.panel.fillColor);
+			MainUIState.drawer->DrawRect(panelState.targetRect, style.panel.fillColor);
 		}
 
 		UIFont* font = style.headerFontStyle.font ? style.headerFontStyle.font : DefaultFont;
@@ -1522,7 +1522,7 @@ namespace ZE
 
 		MainUIState.drawPosDimensionStack.push_back(MainUIState.drawPosDimension);
 
-		MainUIState.drawPosDimension = panelState.posAndDimension;
+		MainUIState.drawPosDimension = panelState.targetRect;
 		MainUIState.drawPosDimension.m_pos.x += 10.0f;
 		MainUIState.drawPosDimension.m_pos.y += style.headerHeight + 10.0f;
 		MainUIState.drawPosDimension.m_dimension.x -= 40.0f;
@@ -1532,7 +1532,7 @@ namespace ZE
 		MainUIState.drawDirection = UIVector2(0.0f, 1.0f);
 		
 		// Draw Scroll bar
-		Float32 contentDimensionY = panelState.posAndDimension.m_dimension.y - (style.headerHeight + 15.0f);
+		Float32 contentDimensionY = panelState.targetRect.m_dimension.y - (style.headerHeight + 15.0f);
 		Float32 adjustedContentSizeY = panelState.contentSize.y - (style.headerHeight + 15.0f);
 		if ( !panelState.bAutoSize && contentDimensionY < adjustedContentSizeY)
 		{
@@ -1542,7 +1542,7 @@ namespace ZE
 				panelState.scrollOffset += mouseScroll * -10.0f;
 				panelState.scrollOffset = UICLAMP(0.0f, adjustedContentSizeY - contentDimensionY, panelState.scrollOffset);
 			}
-			panelState.scrollOffset = DoScrollBar(UIVector2(panelState.posAndDimension.m_pos.x + panelState.posAndDimension.m_dimension.x - 10.0f, panelState.posAndDimension.m_pos.y + style.headerHeight + 10.0f), panelState.scrollOffset, contentDimensionY, adjustedContentSizeY);
+			panelState.scrollOffset = DoScrollBar(UIVector2(panelState.targetRect.m_pos.x + panelState.targetRect.m_dimension.x - 10.0f, panelState.targetRect.m_pos.y + style.headerHeight + 10.0f), panelState.scrollOffset, contentDimensionY, adjustedContentSizeY);
 		}
 		else
 		{
@@ -1551,7 +1551,7 @@ namespace ZE
 
 		if (panelState.bAutoSize)
 		{
-			panelState.posAndDimension.m_dimension.y = panelState.contentSize.y;
+			panelState.targetRect.m_dimension.y = panelState.contentSize.y;
 		}
 
 		MainUIState.drawer->PushRectMask(MainUIState.drawPosDimension);
@@ -1569,7 +1569,7 @@ namespace ZE
 
 		UInt32 parentId = StackIDs.back();
 		UIPanelState& panelState = MainUIState.panelStates[parentId]; 
-		panelState.contentSize.y = MainUIState.drawPosDimension.m_pos.y - ( panelState.posAndDimension.m_pos.y - panelState.scrollOffset );
+		panelState.contentSize.y = MainUIState.drawPosDimension.m_pos.y - ( panelState.targetRect.m_pos.y - panelState.scrollOffset );
 
 		UIRect newRect = MainUIState.drawPosDimensionStack.back();
 		MainUIState.drawPosDimension = newRect;
@@ -1577,6 +1577,93 @@ namespace ZE
 
 		MainUIState.drawDirection = MainUIState.drawDirectionStack.back();
 		MainUIState.drawDirectionStack.pop_back();
+
+		StackIDs.pop_back();
+	}
+
+	void UI::BeginListView(const UIChar* listName, const UIRect& rect)
+	{
+		const UInt32 _id = GetUIIDFromString(listName);
+
+		const bool hasParent = StackIDs.size() > 1;
+		
+		StackIDs.push_back(_id);
+
+		if (!(HashMapHas(MainUIState.scrollStates, _id)))
+		{
+			UIScrollState scrollState;
+			scrollState.targetRect = rect;
+			scrollState.contentSize = rect.m_dimension;
+			scrollState.scrollOffset = 0.0f;
+			MainUIState.scrollStates[_id] = scrollState;
+		}
+
+		UIScrollState& scrollState = MainUIState.scrollStates[_id];
+
+		MainUIState.drawPosDimensionStack.push_back(MainUIState.drawPosDimension);
+
+		if (hasParent)
+		{
+			MainUIState.drawPosDimension.m_pos += rect.m_pos;
+			MainUIState.drawPosDimension.m_dimension = rect.m_dimension;
+		}
+		else
+		{
+			MainUIState.drawPosDimension = rect;
+		}
+		scrollState.targetRect = MainUIState.drawPosDimension;
+
+		MainUIState.drawDirectionStack.push_back(MainUIState.drawDirection);
+		MainUIState.drawDirection = UIVector2(0.0f, 1.0f);
+		
+		// Add scrollbar
+		if (scrollState.targetRect.m_dimension.y < scrollState.contentSize.y)
+		{
+			if (CheckMouseInside(MainUIState.drawPosDimension))
+			{
+				Float32 mouseScroll = MainUIState.UseScrollOffset();
+				scrollState.scrollOffset += mouseScroll * -10.0f;
+				scrollState.scrollOffset = UICLAMP(0.0f, scrollState.contentSize.y - scrollState.targetRect.m_dimension.y, scrollState.scrollOffset);
+			}
+			scrollState.scrollOffset = DoScrollBar(UIVector2(MainUIState.drawPosDimension.m_pos.x + scrollState.targetRect.m_dimension.x - 10, MainUIState.drawPosDimension.m_pos.y), scrollState.scrollOffset, scrollState.targetRect.m_dimension.y, scrollState.contentSize.y);
+		}
+		else
+		{
+			scrollState.scrollOffset = 0.0f;
+		}
+
+
+		MainUIState.drawer->PushRectMask(MainUIState.drawPosDimension);
+		PushInteractionRect(MainUIState.drawPosDimension);
+
+		MainUIState.drawPosDimension.m_pos.y -= scrollState.scrollOffset;
+	}
+
+	void UI::EndListView()
+	{
+		const bool hasParent = StackIDs.size() > 2;
+		const UInt32 _id = StackIDs.back();
+
+		UIScrollState& scrollState = MainUIState.scrollStates[_id];
+		scrollState.contentSize.y = MainUIState.drawPosDimension.m_pos.y - (scrollState.targetRect.m_pos.y - scrollState.scrollOffset);
+
+		PopInteractionRect();
+		MainUIState.drawer->PopMask();
+
+		MainUIState.drawDirection = MainUIState.drawDirectionStack.back();
+		MainUIState.drawDirectionStack.pop_back();
+
+		if (hasParent)
+		{
+			UIRect topStackRect = MainUIState.drawPosDimensionStack.back();
+			MainUIState.drawPosDimension.m_pos = topStackRect.m_pos + scrollState.targetRect.m_dimension * MainUIState.drawDirection;
+			MainUIState.drawPosDimension.m_dimension = topStackRect.m_dimension;
+		}
+		else
+		{
+			MainUIState.drawPosDimension = MainUIState.drawPosDimensionStack.back();
+		}
+		MainUIState.drawPosDimensionStack.pop_back();
 
 		StackIDs.pop_back();
 	}

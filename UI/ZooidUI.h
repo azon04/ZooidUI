@@ -85,6 +85,13 @@ namespace ZE
 			this->x = x;
 			this->y = y;
 		}
+
+		UIVector2& operator+=(const UIVector2& v)
+		{
+			this->x += v.x;
+			this->y += v.y;
+			return *this;
+		}
 	};
 
 	// Vector2 Operation
@@ -163,12 +170,17 @@ namespace ZE
 		UIVector4 color;
 	};
 
-	// Panel State
-	struct UIPanelState
+	// Scroll State
+	struct UIScrollState
 	{
-		UIRect posAndDimension;
+		UIRect targetRect;
 		UIVector2 contentSize;
 		Float32 scrollOffset;
+	};
+
+	// Panel State
+	struct UIPanelState : UIScrollState
+	{
 		bool closed;
 		bool bAutoSize;
 	};
@@ -247,6 +259,9 @@ namespace ZE
 
 		// Panel State Map
 		UIHashMap<UInt32, UIPanelState> panelStates;
+
+		// Scroll State Map
+		UIHashMap<UInt32, UIScrollState> scrollStates;
 
 	public:
 
@@ -673,6 +688,12 @@ namespace ZE
 		
 		// End of the panel
 		void EndPanel();
+
+		// Begin List View
+		void BeginListView(const UIChar* listName, const UIRect& rect);
+
+		// End List View
+		void EndListView();
 
 		// Menu Implementation
 
