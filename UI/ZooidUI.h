@@ -351,7 +351,7 @@ namespace ZE
 		virtual ~UIDrawList() { freeDrawItems(); }
 
 		Int32 itemCount() const;
-		UIDrawItem* getDrawItem(int _index) const;
+		UIDrawItem* getDrawItem(Int32 _index) const;
 		UIDrawItem* getNextDrawItem();
 		void reset();
 
@@ -618,7 +618,7 @@ namespace ZE
 		
 		// Update/Record keyboard button
 		// Key State: 0:pressed 1:release 2: repeat
-		void RecordKeyboardButton(UIChar keyChar, int keyState);
+		void RecordKeyboardButton(UIChar keyChar, Int32 keyState);
 		
 		// Update/Record keyboard text input
 		void RecordTextInput(UIChar keyChar);
@@ -646,9 +646,6 @@ namespace ZE
 		void DoRadioButtons(const UIChar** textArray, UInt32 textArrayLen, Int32* _selectionId, const UIButtonStyle& radioButtonStyle = DefaultRadioBtnStyle);
 		void DoRadioButtonsEx(const UIVector2& startPos, const UIChar** textArray, UInt32 textArrayLen, Int32* _selectionId, const UIButtonStyle& radioButtonStyle = DefaultRadioBtnStyle);
 
-		// #DEPRECATED : Panel. Need to integrate the opening and closing panel to BeginPanel, then delete this function
-		void DoPanel(const UIRect& panelRect, const UIChar* text, Float32 padding, UIVector2& contentPos, bool& bClosed, const UIPanelStyle& style = DefaultPanelStyle);
-		
 		// Slider
 		void DoSlider(Float32* percent, const UISliderStyle& sliderStyle = DefaultSliderStyle);
 		void DoSliderEx(const UIRect& rect, Float32* percent, const UISliderStyle& sliderStyle = DefaultSliderStyle);
@@ -748,7 +745,7 @@ namespace ZE
 		void DrawTextureInPos(const UIRect& rect, UITexture* texture, const UIVector4& colorMultiplier, ETextureScale textureScale = SCALE_IMAGE, const UIVector4& scaleOffset = UIVector4(0.0f));
 		
 		// Draw Scroll Bar
-		float DoScrollBar(const UIVector2& pos, float currentOffset, float directionSize, float actualSize, EDirection scrollDirection = DIR_VERTICAL, const UIScrollBarStyle& scrollBarStyle = DefaultScrollBarStyle);
+		Float32 DoScrollBar(const UIVector2& pos, Float32 currentOffset, Float32 directionSize, Float32 actualSize, EDirection scrollDirection = DIR_VERTICAL, const UIScrollBarStyle& scrollBarStyle = DefaultScrollBarStyle);
 
 		// =================================================
 
