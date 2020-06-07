@@ -323,8 +323,8 @@ namespace ZE
 		DefaultDropdownStyle.dropdownButtonStyle.hover.textureScale = SCALE_9SCALE;
 		DefaultDropdownStyle.dropdownButtonStyle.fontStyle.font = DefaultFont;
 		DefaultDropdownStyle.dropdownButtonStyle.fontStyle.fontScale = 1.0f;
-		DefaultDropdownStyle.selectorStyle.fillColor = UIVector4(0.0f, 0.5f, 1.0f, 1.0f);
-		DefaultDropdownStyle.selectorHoverStyle.fillColor = UIVector4(0.0f, 0.0f, 1.0f, 0.5f);
+		DefaultDropdownStyle.selectorStyle.fillColor = UIVector4(0.25f, 0.25f, 0.25f, 1.0f);
+		DefaultDropdownStyle.selectorHoverStyle.fillColor = UIVector4(15/255.0f, 95/255.0f, 168/255.0f, 0.5f);
 		DefaultDropdownStyle.selectorFontStyle.font = DefaultFont;
 		DefaultDropdownStyle.selectorFontStyle.fontScale = 1.0f;
 
@@ -343,16 +343,16 @@ namespace ZE
 		// Default Menu Style
 		DefaultMenuStyle.fontStyle.font = DefaultFont;
 		DefaultMenuStyle.fontStyle.fontScale = 1.0f;
-		DefaultMenuStyle.background.fillColor = UIVector4(0.18f, 0.18f, 0.19f, 1.0f);
-		DefaultMenuStyle.hover.fillColor = UIVector4(0.25f, 0.25f, 0.25f, 1.0f);
+		DefaultMenuStyle.background.fillColor = UIVector4(0.25f, 0.25f, 0.25f, 1.0f);
+		DefaultMenuStyle.hover.fillColor = UIVector4(15 / 255.0f, 95 / 255.0f, 168 / 255.0f, 1.0f);
 		DefaultMenuStyle.selected.fillColor = UIVector4(0.1f, 0.1f, 0.1f, 1.0f);
 		DefaultMenuStyle.menuPadding = 10.0f;
 
 		// Default Sub Menu Style
 		DefaultSubMenuStyle.fontStyle.font = DefaultFont;
 		DefaultSubMenuStyle.fontStyle.fontScale = 1.0f;
-		DefaultSubMenuStyle.selected.fillColor = UIVector4(0.18f, 0.18f, 0.19f, 1.0f);
-		DefaultSubMenuStyle.hover.fillColor = UIVector4(0.25f, 0.25f, 0.25f, 1.0f);
+		DefaultSubMenuStyle.selected.fillColor = UIVector4(0.25f, 0.25f, 0.25f, 1.0f);
+		DefaultSubMenuStyle.hover.fillColor = UIVector4(15 / 255.0f, 95 / 255.0f, 168 / 255.0f, 1.0f);
 		DefaultSubMenuStyle.background.fillColor = UIVector4(0.1f, 0.1f, 0.1f, 1.0f);
 		DefaultSubMenuStyle.menuPadding = 5.0f;
 
@@ -846,7 +846,7 @@ namespace ZE
 
 		UIRect sliderRect;
 		sliderRect.m_dimension.x = rect.m_dimension.x;
-		sliderRect.m_dimension.y = rect.m_dimension.y;
+		sliderRect.m_dimension.y = rect.m_dimension.y * 0.5;
 		sliderRect.m_pos.x = rect.m_pos.x;
 		sliderRect.m_pos.y = rect.m_pos.y + (rect.m_dimension.y - sliderRect.m_dimension.y) / 2;
 
@@ -877,7 +877,7 @@ namespace ZE
 		static UIRect rect;
 		rect = MainUIState.drawPosDimension;
 		rect.m_dimension.x = style.dropdownButtonStyle.fontStyle.font->calculateTextLength(textOptions[*selectedIdx], style.dropdownButtonStyle.fontStyle.fontScale) + 60.0f;
-		rect.m_dimension.y = style.dropdownButtonStyle.fontStyle.font->calculateTextHeight(style.dropdownButtonStyle.fontStyle.fontScale) + 20.0f;
+		rect.m_dimension.y = style.dropdownButtonStyle.fontStyle.font->calculateTextHeight(style.dropdownButtonStyle.fontStyle.fontScale) + 15.0f;
 
 		DoDropDownEx(rect, selectedIdx, textOptions, optionCount, style);
 
@@ -1419,9 +1419,9 @@ namespace ZE
 
 		MainUIState.drawPosDimension = panelState.targetRect;
 		MainUIState.drawPosDimension.m_pos.x += 10.0f;
-		MainUIState.drawPosDimension.m_pos.y += style.headerHeight + 10.0f;
+		MainUIState.drawPosDimension.m_pos.y += style.headerHeight + 5.0f;
 		MainUIState.drawPosDimension.m_dimension.x -= 40.0f;
-		MainUIState.drawPosDimension.m_dimension.y -= style.headerHeight + 15.0f;
+		MainUIState.drawPosDimension.m_dimension.y -= style.headerHeight + 10.0f;
 
 		MainUIState.drawDirectionStack.push_back(MainUIState.drawDirection);
 		MainUIState.drawDirection = UIVector2(0.0f, 1.0f);
