@@ -94,6 +94,8 @@ void windowFrameBufferSizeCallback(GLFWwindow* window, int width, int height)
 	ZE::UI::ResizeWindow(width, height);
 }
 
+bool listItemChecked[5] = { false };
+
 int main()
 {
 	ZE::GL_UIRenderer* renderer;
@@ -137,6 +139,7 @@ int main()
 	ZE::Float32 vec4[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
 
 	const char* listItem[5] = { "List Item 1", "List Item 2", "List Item 3", "List Item 4", "List Item 5" };
+	ZE::UInt32 selectionIndex = 1;
 
 	while (!renderer->requestToClose())
 	{
@@ -160,7 +163,7 @@ int main()
 		sprintf_s(buffer, "FPS: %.1f", 1.0f / (totalTime / 1000.0f));
 		ZE::UI::DrawTextInPos(ZE::UIVector2{ 0.0f, ZE::UI::GetScreenHeight() - 1.0f * ZE::UI::DefaultFont->calculateTextHeight(1.0f) }, buffer, ZE::UIVector4{ 1.0f });
 
-		if (ZE::UI::BeginPanel("Text Panel...", ZE::UIRect(ZE::UIVector2(150.0f, 100.f), ZE::UIVector2(250.0f, 300.0f))))
+		if (ZE::UI::BeginPanel("Text Panel...", ZE::UIRect(ZE::UIVector2(150.0f, 100.f), ZE::UIVector2(300.0f, 400.0f)), true))
 		{
 			ZE::UI::DoText("Test Text");
 			if (ZE::UI::DoButton("Button"))
@@ -178,8 +181,10 @@ int main()
 			ZE::UI::DoVector3Input(vec3);
 			ZE::UI::DoVector4Input(vec4);
 
+			ZE::UI::DoText("First List", ZE::UIVector4(1.0f, 0.0f, 0.0f, 1.0f));
+
 			ZE::UI::DoListView("ListTestWithLambda", 
-				ZE::UIRect(ZE::UIVector2(0.0f, 0.0f), ZE::UIVector2(210.0f, 70.0f)), 
+				ZE::UIRect(ZE::UIVector2(0.0f, 0.0f), ZE::UIVector2(250.0f, 120.0f)), 
 				listItem, 5, 
 				[](const char*& text, ZE::UInt32 idx) 
 				{
@@ -187,16 +192,31 @@ int main()
 				}
 			);
 
-			ZE::UI::DoListView("ListTest",
-				ZE::UIRect(ZE::UIVector2(0.0f, 0.0f), ZE::UIVector2(200.0f, 70.0f)),
-				listItem, 5
+			ZE::UI::DoText("Second List", ZE::UIVector4(1.0f, 0.0f, 0.0f, 1.0f));
+			ZE::UI::DoListView("ListTest3rd",
+				ZE::UIRect(ZE::UIVector2(0.0f, 0.0f), ZE::UIVector2(250.0f, 120.0f)),
+				listItem, 5,
+				[](const char*& text, ZE::UInt32 idx)
+				{
+					listItemChecked[idx] = ZE::UI::DoCheckBox(text, listItemChecked[idx]);
+				}
 			);
+
+			ZE::UI::DoText("Third List", ZE::UIVector4(1.0f, 0.0f, 0.0f, 1.0f));
+			if (ZE::UI::DoSelectionListView("ListTest",
+				ZE::UIRect(ZE::UIVector2(0.0f, 0.0f), ZE::UIVector2(250.0f, 70.0f)),
+				listItem, selectionIndex, 5
+			))
+			{
+				std::cout << "Selection Changed to " << selectionIndex << std::endl;
+			}
+
 
 			ZE::UI::EndPanel();
 		}
 
 #if 0
-		if (ZE::UI::BeginPanel("Image Scaling...", ZE::UIRect(ZE::UIVector2(350.0f, 100.f), ZE::UIVector2(250.0f, 500.0f))))
+		if (ZE::UI::BeginPanel("Image Scaling...", ZE::UIRect(ZE::UIVector2(350.0f, 100.f), ZE::UIVector2(250.0f, 500.0f)), true))
 		{
 			ZE::UI::DrawTexture({ 200, 70 }, panelBg, ZE::UIVector4{ 1.0f });
 			ZE::UI::DrawTexture({ 200, 70 }, panelBg, ZE::UIVector4{ 1.0f }, ZE::SCALE_9SCALE, ZE::UIVector4{ 0.40f, 0.15f, 0.15f, 0.15f });

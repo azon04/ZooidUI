@@ -1552,7 +1552,7 @@ namespace ZE
 				scrollState.scrollOffset += mouseScroll * -10.0f;
 				scrollState.scrollOffset = UICLAMP(0.0f, scrollState.contentSize.y - scrollState.targetRect.m_dimension.y, scrollState.scrollOffset);
 			}
-			scrollState.scrollOffset = DoScrollBar(UIVector2(scrollState.targetRect.m_pos.x + scrollState.targetRect.m_dimension.x - 10, scrollState.targetRect.m_pos.y), scrollState.scrollOffset, scrollState.targetRect.m_dimension.y, scrollState.contentSize.y);
+			scrollState.scrollOffset = DoScrollBar(UIVector2(scrollState.targetRect.m_pos.x + scrollState.targetRect.m_dimension.x - 5, scrollState.targetRect.m_pos.y), scrollState.scrollOffset, scrollState.targetRect.m_dimension.y, scrollState.contentSize.y);
 		}
 		else
 		{
@@ -1570,6 +1570,108 @@ namespace ZE
 			DoText(listItem[i]);
 		}
 		EndListView();
+	}
+
+	void UI::BeginSelectionListView(const UIChar* listName, const UIRect& rect, UInt32& selection)
+	{
+		const UInt32 _id = GetUIIDFromString(listName);
+
+		const bool hasParent = StackIDs.size() > 1;
+
+		StackIDs.push_back(_id);
+
+		if (!(HashMapHas(MainUIState.scrollStates, _id)))
+		{
+			UIScrollState scrollState;
+			scrollState.targetRect = rect;
+			scrollState.contentSize = rect.m_dimension;
+			scrollState.scrollOffset = 0.0f;
+			MainUIState.scrollStates[_id] = scrollState;
+		}
+
+		UIScrollState& scrollState = MainUIState.scrollStates[_id];
+
+		MainUIState.drawPosDimensionStack.push_back(MainUIState.drawPosDimension);
+
+		if (hasParent)
+		{
+			MainUIState.drawPosDimension.m_pos += rect.m_pos;
+			MainUIState.drawPosDimension.m_dimension = rect.m_dimension;
+		}
+		else
+		{
+			MainUIState.drawPosDimension = rect;
+		}
+		scrollState.targetRect = MainUIState.drawPosDimension;
+
+		MainUIState.drawDirectionStack.push_back(MainUIState.drawDirection);
+		MainUIState.drawDirection = UIVector2(0.0f, 1.0f);
+
+		MainUIState.drawer->DrawRect(MainUIState.drawPosDimension, ZE::UIVector4(0.15f, 0.15f, 0.15f, 1.0f));
+
+		MainUIState.drawer->PushRectMask(MainUIState.drawPosDimension);
+		PushInteractionRect(MainUIState.drawPosDimension);
+
+		MainUIState.drawPosDimension.m_pos.y -= scrollState.scrollOffset;
+	}
+
+	bool UI::DoSelectionListView(const UIChar* listName, const UIRect& rect, const UIChar** listItem, UInt32& selection, UInt32 itemCount)
+	{
+		bool selectionChanged = false;
+		BeginSelectionListView(listName, rect, selection);
+		for (UInt32 i = 0; i < itemCount; i++)
+		{
+			selectionChanged |= DoSelectionItemList(rect, listItem[i], i, selection);
+		}
+		EndListView();
+
+		return selectionChanged;
+	}
+
+	bool UI::DoSelectionItemList(const UIRect& rect, const UIChar* listItem, const UInt32 currentIndex, UInt32& selectedIndex)
+	{
+		bool selectionChanged = false;
+		static UIRect drawRect;
+		drawRect = MainUIState.drawPosDimension;
+		drawRect.m_dimension.x = rect.m_dimension.x - 5;
+		drawRect.m_dimension.y = DefaultFont->calculateTextHeight(1.0f) + 10;
+
+		const UInt32 _id = GetUIIDFromString(listItem);
+		const bool mouseInside = CheckMouseInside(drawRect);
+		
+		if (mouseInside && MainUIState.mouseState == EButtonState::BUTTON_DOWN)
+		{
+			MainUIState.activeItem.id = _id;
+		}
+		else if (mouseInside)
+		{
+			MainUIState.hotItem.id = _id;
+			if (MainUIState.activeItem.id == _id) 
+			{ 
+				MainUIState.activeItem.id = 0; 
+				selectionChanged = selectedIndex != currentIndex;
+				if (selectionChanged)
+				{
+					selectedIndex = currentIndex;
+					
+				}
+			}
+		}
+
+		if (currentIndex == selectedIndex)
+		{
+			MainUIState.drawer->DrawRect(drawRect, UIVector4(15 / 255.0f, 95 / 255.0f, 168 / 255.0f, 0.5f));
+		}
+		else if (MainUIState.hotItem.id == _id)
+		{
+			MainUIState.drawer->DrawRect(drawRect, UIVector4(15 / 255.0f, 95 / 255.0f, 168 / 255.0f, 0.25f));
+		}
+
+		DrawTextInRect(drawRect, listItem, UIVector4(1.0f), TEXT_LEFT, TEXT_V_CENTER);
+
+		MainUIState.drawPosDimension.m_pos = MainUIState.drawPosDimension.m_pos + MainUIState.drawDirection * drawRect.m_dimension;
+
+		return selectionChanged;
 	}
 
 	void UI::BeginMenu()

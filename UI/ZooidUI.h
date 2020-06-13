@@ -707,6 +707,16 @@ namespace ZE
 		// Specialized function with default DoText
 		void DoListView(const UIChar* listName, const UIRect& rect, const UIChar** listItem, UInt32 itemCount);
 
+		// Begin Selection List View
+		void BeginSelectionListView(const UIChar* listName, const UIRect& rect, UInt32& selection);
+
+		// Selection List View
+		// @return true if selectedIndex changed
+		bool DoSelectionListView(const UIChar* listName, const UIRect& rect, const UIChar** listItems, UInt32& selectedIndex, UInt32 itemCount);
+
+		// Selection Item List
+		bool DoSelectionItemList(const UIRect& rect, const UIChar* listItem, const UInt32 currentIndex, UInt32& selectedIndex);
+
 		// Menu Implementation
 
 		// Start Window Menu
