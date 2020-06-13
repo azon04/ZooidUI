@@ -118,6 +118,12 @@ namespace ZE
 	
 	UIStack<UInt32> UI::StackIDs;
 
+
+	// COLOR PRESETS
+	UIVector4 COLOR_WHITE(1.0f);
+	UIVector4 COLOR_BLUE_SELECTION(15 / 255.0f, 95 / 255.0f, 168 / 255.0f, 0.5f);
+	UIVector4 COLOR_BLUE_HOVERED(15 / 255.0f, 95 / 255.0f, 168 / 255.0f, 0.25f);
+
 	ZE::Int32 UI::GetScreenWidth()
 	{
 		return MainUIState.screenWidth;
@@ -310,30 +316,30 @@ namespace ZE
 
 		// Default Drowpdown Style
 		DefaultDropdownStyle.dropdownButtonStyle.up.texture = dropdownBtnUp;
-		DefaultDropdownStyle.dropdownButtonStyle.up.fillColor = UIVector4(1.0f);
+		DefaultDropdownStyle.dropdownButtonStyle.up.fillColor = COLOR_WHITE;
 		DefaultDropdownStyle.dropdownButtonStyle.up.textureOffset = UIVector4(0.12f, 0.12f, 0.075f, 0.4f);
 		DefaultDropdownStyle.dropdownButtonStyle.up.textureScale = SCALE_9SCALE;
 		DefaultDropdownStyle.dropdownButtonStyle.down.texture = dropdownBtnDown;
-		DefaultDropdownStyle.dropdownButtonStyle.down.fillColor = UIVector4(1.0f);
+		DefaultDropdownStyle.dropdownButtonStyle.down.fillColor = COLOR_WHITE;
 		DefaultDropdownStyle.dropdownButtonStyle.down.textureOffset = UIVector4(0.12f, 0.12f, 0.075f, 0.4f);
 		DefaultDropdownStyle.dropdownButtonStyle.down.textureScale = SCALE_9SCALE;
 		DefaultDropdownStyle.dropdownButtonStyle.hover.texture = dropdownBtnHover;
-		DefaultDropdownStyle.dropdownButtonStyle.hover.fillColor = UIVector4(1.0f);
+		DefaultDropdownStyle.dropdownButtonStyle.hover.fillColor = COLOR_WHITE;
 		DefaultDropdownStyle.dropdownButtonStyle.hover.textureOffset = UIVector4(0.12f, 0.12f, 0.075f, 0.4f);
 		DefaultDropdownStyle.dropdownButtonStyle.hover.textureScale = SCALE_9SCALE;
 		DefaultDropdownStyle.dropdownButtonStyle.fontStyle.font = DefaultFont;
 		DefaultDropdownStyle.dropdownButtonStyle.fontStyle.fontScale = 1.0f;
 		DefaultDropdownStyle.selectorStyle.fillColor = UIVector4(0.25f, 0.25f, 0.25f, 1.0f);
-		DefaultDropdownStyle.selectorHoverStyle.fillColor = UIVector4(15/255.0f, 95/255.0f, 168/255.0f, 0.5f);
+		DefaultDropdownStyle.selectorHoverStyle.fillColor = COLOR_BLUE_HOVERED;
 		DefaultDropdownStyle.selectorFontStyle.font = DefaultFont;
 		DefaultDropdownStyle.selectorFontStyle.fontScale = 1.0f;
 
 		// Default Text Input Style
-		DefaultTextInputStyle.defaultStyle.fillColor = UIVector4(1.0f);
+		DefaultTextInputStyle.defaultStyle.fillColor = COLOR_WHITE;
 		DefaultTextInputStyle.defaultStyle.texture = textInputBg;
 		DefaultTextInputStyle.defaultStyle.textureScale = SCALE_9SCALE;
 		DefaultTextInputStyle.defaultStyle.textureOffset = UIVector4(0.20f);
-		DefaultTextInputStyle.activeStyle.fillColor = UIVector4(1.0f);
+		DefaultTextInputStyle.activeStyle.fillColor = COLOR_WHITE;
 		DefaultTextInputStyle.activeStyle.texture = textInputBgActive;
 		DefaultTextInputStyle.activeStyle.textureScale = SCALE_9SCALE;
 		DefaultTextInputStyle.activeStyle.textureOffset = UIVector4(0.20f);
@@ -344,7 +350,7 @@ namespace ZE
 		DefaultMenuStyle.fontStyle.font = DefaultFont;
 		DefaultMenuStyle.fontStyle.fontScale = 1.0f;
 		DefaultMenuStyle.background.fillColor = UIVector4(0.25f, 0.25f, 0.25f, 1.0f);
-		DefaultMenuStyle.hover.fillColor = UIVector4(15 / 255.0f, 95 / 255.0f, 168 / 255.0f, 1.0f);
+		DefaultMenuStyle.hover.fillColor = COLOR_BLUE_SELECTION;
 		DefaultMenuStyle.selected.fillColor = UIVector4(0.1f, 0.1f, 0.1f, 1.0f);
 		DefaultMenuStyle.menuPadding = 10.0f;
 
@@ -352,7 +358,7 @@ namespace ZE
 		DefaultSubMenuStyle.fontStyle.font = DefaultFont;
 		DefaultSubMenuStyle.fontStyle.fontScale = 1.0f;
 		DefaultSubMenuStyle.selected.fillColor = UIVector4(0.25f, 0.25f, 0.25f, 1.0f);
-		DefaultSubMenuStyle.hover.fillColor = UIVector4(15 / 255.0f, 95 / 255.0f, 168 / 255.0f, 1.0f);
+		DefaultSubMenuStyle.hover.fillColor = COLOR_BLUE_SELECTION;
 		DefaultSubMenuStyle.background.fillColor = UIVector4(0.1f, 0.1f, 0.1f, 1.0f);
 		DefaultSubMenuStyle.menuPadding = 5.0f;
 
@@ -590,7 +596,7 @@ namespace ZE
 			MainUIState.drawer->DrawRect(rect, style->fillColor);
 		}
 
-		DrawTextInRect(rect, label, UIVector4(1.0f), TEXT_CENTER, TEXT_V_CENTER, buttonStyle.fontStyle.fontScale, buttonStyle.fontStyle.font);
+		DrawTextInRect(rect, label, COLOR_WHITE, TEXT_CENTER, TEXT_V_CENTER, buttonStyle.fontStyle.fontScale, buttonStyle.fontStyle.font);
 
 		return bPressed;
 	}
@@ -685,7 +691,7 @@ namespace ZE
 
 		if (text[0] != '\0')
 		{
-			MainUIState.drawer->DrawText(UIVector2{ pos.x + textOffsetX + 5, pos.y + (rect.m_dimension.y - font->calculateTextHeight(1.0f)) / 2 }, UIVector4(1.0f), font, text, checkBoxStyle.fontStyle.fontScale);
+			MainUIState.drawer->DrawText(UIVector2{ pos.x + textOffsetX + 5, pos.y + (rect.m_dimension.y - font->calculateTextHeight(1.0f)) / 2 }, COLOR_WHITE, font, text, checkBoxStyle.fontStyle.fontScale);
 		}
 
 		return bChecked;
@@ -776,7 +782,7 @@ namespace ZE
 
 		if (text[0] != '\0')
 		{
-			MainUIState.drawer->DrawText(UIVector2{ pos.x + textOffsetX + 5, pos.y + (rect.m_dimension.y - font->calculateTextHeight(1.0f)) / 2 }, UIVector4(1.0f), font, text);
+			MainUIState.drawer->DrawText(UIVector2{ pos.x + textOffsetX + 5, pos.y + (rect.m_dimension.y - font->calculateTextHeight(1.0f)) / 2 }, COLOR_WHITE, font, text);
 		}
 	}
 
@@ -954,7 +960,7 @@ namespace ZE
 			MainUIState.drawer->DrawRect(rect, uiStyle->fillColor);
 		}
 
-		DrawTextInRect(textRect, textOptions[*selectedIdx], UIVector4(1.0f), TEXT_LEFT, TEXT_V_CENTER, style.dropdownButtonStyle.fontStyle.fontScale, style.dropdownButtonStyle.fontStyle.font);
+		DrawTextInRect(textRect, textOptions[*selectedIdx], COLOR_WHITE, TEXT_LEFT, TEXT_V_CENTER, style.dropdownButtonStyle.fontStyle.fontScale, style.dropdownButtonStyle.fontStyle.font);
 
 		if (cacheId == _id)
 		{
@@ -990,7 +996,7 @@ namespace ZE
 					}
 				}
 
-				DrawTextInRect(selTextRect, textOptions[i], UIVector4(1.0f), TEXT_LEFT, TEXT_V_CENTER, DefaultDropdownStyle.selectorFontStyle.fontScale, DefaultDropdownStyle.selectorFontStyle.font);
+				DrawTextInRect(selTextRect, textOptions[i], COLOR_WHITE, TEXT_LEFT, TEXT_V_CENTER, DefaultDropdownStyle.selectorFontStyle.fontScale, DefaultDropdownStyle.selectorFontStyle.font);
 				selTextRect.m_pos.y += rect.m_dimension.y;
 			}
 
@@ -1082,7 +1088,7 @@ namespace ZE
 
 		if (bufferChar[0] != 0)
 		{
-			DrawTextInRect(textRect, bufferChar + textInputScrollPos * sizeof(UIChar), UIVector4(1.0f), ZE::TEXT_LEFT, ZE::TEXT_V_CENTER, style.fontStyle.fontScale, style.fontStyle.font);
+			DrawTextInRect(textRect, bufferChar + textInputScrollPos * sizeof(UIChar), COLOR_WHITE, ZE::TEXT_LEFT, ZE::TEXT_V_CENTER, style.fontStyle.fontScale, style.fontStyle.font);
 		}
 
 		if (MainUIState.activeItem.id == _id)
@@ -1095,7 +1101,7 @@ namespace ZE
 				blinkRect.m_dimension = { 2.0f, style.fontStyle.font->calculateTextHeight(style.fontStyle.fontScale) };
 				blinkRect.m_pos.x = textRect.m_pos.x + style.fontStyle.font->calculateNTextLength(bufferChar + textInputScrollPos * sizeof(UIChar), MainUIState.textInputCurrentPos - textInputScrollPos, style.fontStyle.fontScale);
 				blinkRect.m_pos.y = textRect.m_pos.y + (textRect.m_dimension.y - blinkRect.m_dimension.y) * 0.5f;
-				MainUIState.drawer->DrawRect(blinkRect, UIVector4(1.0f));
+				MainUIState.drawer->DrawRect(blinkRect, COLOR_WHITE);
 			}
 		}
 	}
@@ -1115,7 +1121,7 @@ namespace ZE
 	{
 		UIChar charBuffer[256];
 		StringHelper::NumberToString(*number, charBuffer, 256, asInt);
-		DrawTextInRect(rect, charBuffer, UIVector4(1.0f), TEXT_CENTER, TEXT_V_CENTER, textStyle.fontScale, textStyle.font);
+		DrawTextInRect(rect, charBuffer, COLOR_WHITE, TEXT_CENTER, TEXT_V_CENTER, textStyle.fontScale, textStyle.font);
 		
 		UInt32 _id = GetUIIDFromPointer(number);
 
@@ -1264,7 +1270,7 @@ namespace ZE
 
 		if (bufferChar[0] != 0)
 		{
-			DrawTextInRect(textRect, bufferChar + textInputScrollPos * sizeof(UIChar), UIVector4(1.0f), ZE::TEXT_LEFT, ZE::TEXT_V_CENTER, style.fontStyle.fontScale, style.fontStyle.font);
+			DrawTextInRect(textRect, bufferChar + textInputScrollPos * sizeof(UIChar), COLOR_WHITE, ZE::TEXT_LEFT, ZE::TEXT_V_CENTER, style.fontStyle.fontScale, style.fontStyle.font);
 		}
 
 		if (MainUIState.activeItem.id == _id)
@@ -1277,7 +1283,7 @@ namespace ZE
 				blinkRect.m_dimension = { 2.0f, style.fontStyle.font->calculateTextHeight(style.fontStyle.fontScale) };
 				blinkRect.m_pos.x = textRect.m_pos.x + style.fontStyle.font->calculateNTextLength(bufferChar + textInputScrollPos * sizeof(UIChar), MainUIState.textInputCurrentPos - textInputScrollPos, style.fontStyle.fontScale);
 				blinkRect.m_pos.y = textRect.m_pos.y + (textRect.m_dimension.y - blinkRect.m_dimension.y) * 0.5f;
-				MainUIState.drawer->DrawRect(blinkRect, UIVector4(1.0f));
+				MainUIState.drawer->DrawRect(blinkRect, COLOR_WHITE);
 			}
 		}
 	}
@@ -1413,7 +1419,7 @@ namespace ZE
 		}
 
 		UIFont* font = style.headerFontStyle.font ? style.headerFontStyle.font : DefaultFont;
-		DrawTextInRect(headerRect, panelLabel, UIVector4(1.0f), TEXT_LEFT, TEXT_V_CENTER, style.headerFontStyle.fontScale, font);
+		DrawTextInRect(headerRect, panelLabel, COLOR_WHITE, TEXT_LEFT, TEXT_V_CENTER, style.headerFontStyle.fontScale, font);
 
 		MainUIState.drawPosDimensionStack.push_back(MainUIState.drawPosDimension);
 
@@ -1572,7 +1578,7 @@ namespace ZE
 		EndListView();
 	}
 
-	void UI::BeginSelectionListView(const UIChar* listName, const UIRect& rect, UInt32& selection)
+	void UI::BeginSelectionListView(const UIChar* listName, const UIRect& rect, Int32& selection)
 	{
 		const UInt32 _id = GetUIIDFromString(listName);
 
@@ -1615,7 +1621,7 @@ namespace ZE
 		MainUIState.drawPosDimension.m_pos.y -= scrollState.scrollOffset;
 	}
 
-	bool UI::DoSelectionListView(const UIChar* listName, const UIRect& rect, const UIChar** listItem, UInt32& selection, UInt32 itemCount)
+	bool UI::DoSelectionListView(const UIChar* listName, const UIRect& rect, const UIChar** listItem, Int32& selection, UInt32 itemCount)
 	{
 		bool selectionChanged = false;
 		BeginSelectionListView(listName, rect, selection);
@@ -1628,7 +1634,7 @@ namespace ZE
 		return selectionChanged;
 	}
 
-	bool UI::DoSelectionItemList(const UIRect& rect, const UIChar* listItem, const UInt32 currentIndex, UInt32& selectedIndex)
+	bool UI::DoSelectionItemList(const UIRect& rect, const UIChar* listItem, const UInt32 currentIndex, Int32& selectedIndex)
 	{
 		bool selectionChanged = false;
 		static UIRect drawRect;
@@ -1649,25 +1655,33 @@ namespace ZE
 			if (MainUIState.activeItem.id == _id) 
 			{ 
 				MainUIState.activeItem.id = 0; 
-				selectionChanged = selectedIndex != currentIndex;
-				if (selectionChanged)
+				selectionChanged = true;
+				if (selectedIndex != currentIndex)
 				{
 					selectedIndex = currentIndex;
-					
+				}
+				else
+				{
+					selectedIndex = -1; // deselect
 				}
 			}
+		}
+		else
+		{
+			if (MainUIState.hotItem.id == _id) { MainUIState.hotItem.id = 0; }
+			if (MainUIState.activeItem.id == _id) { MainUIState.activeItem.id = 0; }
 		}
 
 		if (currentIndex == selectedIndex)
 		{
-			MainUIState.drawer->DrawRect(drawRect, UIVector4(15 / 255.0f, 95 / 255.0f, 168 / 255.0f, 0.5f));
+			MainUIState.drawer->DrawRect(drawRect, COLOR_BLUE_SELECTION);
 		}
 		else if (MainUIState.hotItem.id == _id)
 		{
-			MainUIState.drawer->DrawRect(drawRect, UIVector4(15 / 255.0f, 95 / 255.0f, 168 / 255.0f, 0.25f));
+			MainUIState.drawer->DrawRect(drawRect, COLOR_BLUE_HOVERED);
 		}
 
-		DrawTextInRect(drawRect, listItem, UIVector4(1.0f), TEXT_LEFT, TEXT_V_CENTER);
+		DrawTextInRect(drawRect, listItem, COLOR_WHITE, TEXT_LEFT, TEXT_V_CENTER);
 
 		MainUIState.drawPosDimension.m_pos = MainUIState.drawPosDimension.m_pos + MainUIState.drawDirection * drawRect.m_dimension;
 
@@ -1776,7 +1790,7 @@ namespace ZE
 			}
 		}
 
-		DrawTextInRect(rect, menuLabel, UIVector4(1.0f), ZE::TEXT_CENTER, ZE::TEXT_V_CENTER, fontStyle.fontScale, fontStyle.font);
+		DrawTextInRect(rect, menuLabel, COLOR_WHITE, ZE::TEXT_CENTER, ZE::TEXT_V_CENTER, fontStyle.fontScale, fontStyle.font);
 
 		return MainUIState.MenuStack.size() > 0 && MainUIState.MenuStack[0].menuID.id == menuID;
 	}
@@ -1901,7 +1915,7 @@ namespace ZE
 
 		UIRect textRect = rect;
 		textRect.m_pos.x += DefaultSubMenuStyle.menuPadding;
-		DrawTextInRect(textRect, subMenuLabel, UIVector4(1.0f), ZE::TEXT_LEFT, ZE::TEXT_V_CENTER, fontStyle.fontScale, fontStyle.font);
+		DrawTextInRect(textRect, subMenuLabel, COLOR_WHITE, ZE::TEXT_LEFT, ZE::TEXT_V_CENTER, fontStyle.fontScale, fontStyle.font);
 
 		return bPressed || bSubSubMenuActive;
 	}

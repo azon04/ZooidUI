@@ -139,7 +139,7 @@ int main()
 	ZE::Float32 vec4[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
 
 	const char* listItem[5] = { "List Item 1", "List Item 2", "List Item 3", "List Item 4", "List Item 5" };
-	ZE::UInt32 selectionIndex = 1;
+	ZE::Int32 selectionIndex = 1;
 
 	while (!renderer->requestToClose())
 	{
@@ -215,7 +215,7 @@ int main()
 			ZE::UI::EndPanel();
 		}
 
-#if 0
+#if 1
 		if (ZE::UI::BeginPanel("Image Scaling...", ZE::UIRect(ZE::UIVector2(350.0f, 100.f), ZE::UIVector2(250.0f, 500.0f)), true))
 		{
 			ZE::UI::DrawTexture({ 200, 70 }, panelBg, ZE::UIVector4{ 1.0f });

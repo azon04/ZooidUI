@@ -708,14 +708,14 @@ namespace ZE
 		void DoListView(const UIChar* listName, const UIRect& rect, const UIChar** listItem, UInt32 itemCount);
 
 		// Begin Selection List View
-		void BeginSelectionListView(const UIChar* listName, const UIRect& rect, UInt32& selection);
+		void BeginSelectionListView(const UIChar* listName, const UIRect& rect, Int32& selection);
 
 		// Selection List View
 		// @return true if selectedIndex changed
-		bool DoSelectionListView(const UIChar* listName, const UIRect& rect, const UIChar** listItems, UInt32& selectedIndex, UInt32 itemCount);
+		bool DoSelectionListView(const UIChar* listName, const UIRect& rect, const UIChar** listItems, Int32& selectedIndex, UInt32 itemCount);
 
 		// Selection Item List
-		bool DoSelectionItemList(const UIRect& rect, const UIChar* listItem, const UInt32 currentIndex, UInt32& selectedIndex);
+		bool DoSelectionItemList(const UIRect& rect, const UIChar* listItem, const UInt32 currentIndex, Int32& selectedIndex);
 
 		// Menu Implementation
 
