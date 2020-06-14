@@ -160,11 +160,11 @@ XCOPY "..\..\Dependencies\freetype-2.9.1\win32\lib-vc2015\release\*.DLL" "$(Targ
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\Common\Timer.h" />
     <ClInclude Include="..\..\UI\External\Image\stb_image.h" />
     <ClInclude Include="..\..\UI\UIRenderer.h" />
     <ClInclude Include="..\..\UI\ZooidUI.h" />
     <ClInclude Include="..\..\UI\ZooidUI_Config.h" />
+    <ClInclude Include="..\..\Utils\Timer.h" />
     <ClInclude Include="GL_UIRenderer.h" />
     <ClInclude Include="Shader.h" />
   </ItemGroup>
