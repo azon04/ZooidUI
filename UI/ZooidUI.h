@@ -30,7 +30,7 @@ namespace ZE
 		BUTTON_UP = 0,
 		BUTTON_DOWN = 1
 	};
-	
+
 	enum ETextAlign : UInt8
 	{
 		TEXT_LEFT,
@@ -100,10 +100,10 @@ namespace ZE
 	UIVector2 operator*(const UIVector2& v1, const UIVector2& v2);
 
 	struct UIVector4
-	{		
+	{
 		union
 		{
-			struct  
+			struct
 			{
 				Float32 x;
 				Float32 y;
@@ -119,8 +119,8 @@ namespace ZE
 				Float32 a;
 			};
 		};
-		
-		UIVector4() 
+
+		UIVector4()
 		{
 			x = y = z = w = 0.0f;
 		}
@@ -158,6 +158,7 @@ namespace ZE
 		bool isContain(const UIVector2& pos) const;
 
 		UIRect intersect(const UIRect& otherRect);
+		bool hasIntersectWith(const UIRect& otherRect);
 	};
 
 
@@ -234,14 +235,14 @@ namespace ZE
 		// Timer
 		Timer mainTimer;
 		Float32 timeFromStart;
-		
+
 		// Current Menu Level
 		Int32 currentMenuLevel;
 
 		// Mouse State
 		EButtonState lastMouseState;
 		EButtonState mouseState;
-		
+
 		// Draw State
 		UIVector2 drawDirection;
 		UIRect drawPosDimension;
@@ -256,7 +257,7 @@ namespace ZE
 		UIArray<UIMenuInfo> MenuStack;
 
 		// Interaction Rect Stack
-		UIArray<UIRect> InteractionRectStack;
+		UIArray<UIRect> DrawRectStack;
 
 		// Panel State Map
 		UIHashMap<UInt32, UIPanelState> panelStates;
@@ -279,7 +280,7 @@ namespace ZE
 		UIVector4 uvDim;
 
 		UIDrawInstance() {}
-		
+
 		UIDrawInstance(const UIVector2& pos, Float32 depth, const UIVector2& dimension, Float32 radius, const UIVector4& color, const UIVector4& uvDim)
 		{
 			this->pos = pos;
@@ -315,7 +316,7 @@ namespace ZE
 		bool isUsingRectInstance() const { return m_bUsingRectInstance; }
 		bool isCrop() const { return m_bCrop; }
 
-		bool isDrawMask() const { return m_Mask != DRAW_MASK_NONE;  }
+		bool isDrawMask() const { return m_Mask != DRAW_MASK_NONE; }
 		EDrawMaskProcess getDrawMask() const { return m_Mask; }
 
 		UIVector2 getDimension() const { return m_shapeDimension; }
@@ -360,7 +361,7 @@ namespace ZE
 		UIDrawItem* getTextureInstanceDrawItem(UInt32 _index);
 		UIDrawItem* getTextureDrawItem(UInt32 textureHandle);
 
-	protected:		
+	protected:
 		UInt32 m_count = 0;
 
 		UIArray<UIDrawItem*> m_drawItems;
@@ -392,10 +393,10 @@ namespace ZE
 		Float32 calculateWordWrapTextHeight(const UIChar* text, Float32 scale, Int32 maxWidth);
 
 		UInt32 getTextureHandle() const { return m_textureHandle; }
-		
+
 		void generateVertexBuffer(const UIChar* text, UIArray<UIVertex>& result, const UIVector2 pos, Float32 scale, Float32 depth, UIVector4 color);
 		void generateWrapTextVertexBuffer(const UIChar* text, UIArray<UIVertex>& result, const UIVector2 pos, Float32 scale, Float32 depth, UIVector4 color, Float32 maxWidth, ETextAlign textAlign);
-		
+
 		void generateInstanceBuffer(const UIChar* text, UIArray<UIDrawInstance>& result, const UIVector2 pos, Float32 scale, Float32 depth, UIVector4 color);
 		void generateWrapTextInstanceBuffer(const UIChar* text, UIArray<UIDrawInstance>& result, const UIVector2 pos, Float32 scale, Float32 depth, UIVector4 color, Float32 maxWidth, ETextAlign textAlign, Int32* lineCount = nullptr);
 
@@ -426,7 +427,7 @@ namespace ZE
 		UInt32 getTextureHandle() { return m_textureHandle; }
 
 		void release();
-		
+
 	protected:
 		Int32 m_width;
 		Int32 m_height;
@@ -451,7 +452,7 @@ namespace ZE
 	class UIDrawer
 	{
 	public:
-		UIDrawer() : 
+		UIDrawer() :
 			m_currentDrawList(&m_drawLists[0])
 		{}
 
@@ -562,7 +563,7 @@ namespace ZE
 		UIStyle selected;
 		Float32 menuPadding;
 	};
-	
+
 	// ItemListProvider is used to populate item to view in ListView and SelectionListView
 	class ItemListProvider
 	{
@@ -616,11 +617,12 @@ namespace ZE
 		UInt32 GetUIIDFromPointer(const void* pData);
 
 		// Interaction rect helper
-		void PushInteractionRect(const UIRect& rect);
-		void PopInteractionRect();
-		void ClearInteractionRect();
+		void PushDrawRect(const UIRect& rect);
+		void PopDrawRect();
+		void ClearDrawRect();
 		UIRect CalculateInteractionRect(const UIRect& rect);
 		bool CheckMouseInside(const UIRect& rect);
+		bool ShouldDrawRect(const UIRect& rect);
 
 		// Function
 		void Init(Int32 width, Int32 height);
@@ -635,11 +637,11 @@ namespace ZE
 
 		// Update Mouse State
 		void UpdateMouseState(Float32 mouseX, Float32 mouseY, EButtonState mouseDown);
-		
+
 		// Update/Record keyboard button
 		// Key State: 0:pressed 1:release 2: repeat
 		void RecordKeyboardButton(UIChar keyChar, Int32 keyState);
-		
+
 		// Update/Record keyboard text input
 		void RecordTextInput(UIChar keyChar);
 
@@ -654,7 +656,7 @@ namespace ZE
 		// Button
 		bool DoButton(const UIChar* label, const UIButtonStyle& buttonStyle = DefaultButtonStyle);
 		bool DoButtonEx(const UIChar* label, UIRect& rect, const UIButtonStyle& buttonStyle = DefaultButtonStyle);
-		
+
 		// Return True if Checked
 		bool DoCheckBox(const UIChar* text, bool bChecked, const UIButtonStyle& checkBoxStyle = DefaultCheckBoxStyle);
 		bool DoCheckBoxEx(const UIVector2& pos, const UIChar* text, bool bChecked, UIRect& outRect = ZE::UIRect(), const UIButtonStyle& checkBoxStyle = DefaultCheckBoxStyle);
@@ -677,7 +679,7 @@ namespace ZE
 		// Text Input
 		void DoTextInput(UIChar* bufferChar, Int32 bufferCount, const UITextInputStyle& style = DefaultTextInputStyle);
 		void DoTextInputEx(const UIRect& rect, UIChar* bufferChar, Int32 bufferCount, const UITextInputStyle& style = DefaultTextInputStyle);
-		
+
 		// Button Stepper
 		void DoNumberStepper(Float32* number, Float32 step, bool asInt = false, const UIFontStyle& textStyle = DefaultFontStyle, const UIButtonStyle& buttonStyle = DefaultButtonStyle);
 		void DoNumberStepperEx(const UIRect& rect, Float32* number, Float32 step, bool asInt = false, const UIFontStyle& textStyle = DefaultFontStyle, const UIButtonStyle& buttonStyle = DefaultButtonStyle);
@@ -703,7 +705,7 @@ namespace ZE
 		// Start panel, all component/widgets go after this will be part of the panel
 		// @return true if panel is created and not closed
 		bool BeginPanel(const UIChar* panelLabel, const UIRect initialRect, bool bAutoSize = false, const UIPanelStyle& style = DefaultPanelStyle);
-		
+
 		// End of the panel
 		void EndPanel();
 
@@ -769,7 +771,7 @@ namespace ZE
 
 		void DrawTextInPos(UIVector2& pos, const UIChar* text, const UIVector4& fillColor, UIFont* font = DefaultFont, Float32 scale = 1.0f);
 		void DrawTextInRect(const UIRect& rect, const UIChar* text, UIVector4& fillColor, ETextAlign textAlign = TEXT_LEFT, ETextVerticalAlign vAlign = TEXT_V_CENTER, Float32 scale = 1.0f, UIFont* font = DefaultFont);
-		
+
 		void DrawMultiLineText(const UIChar* text, const UIVector4& fillColor, ETextAlign textAlign = TEXT_LEFT, ETextVerticalAlign vAlign = TEXT_V_TOP, Float32 scale = 1.0f, UIFont* font = DefaultFont);
 		void DrawMultiLineText(const UIVector2& dimension, const UIChar* text, const UIVector4& fillColor, ETextAlign textAlign = TEXT_LEFT, ETextVerticalAlign vAlign = TEXT_V_TOP, Float32 scale = 1.0f, UIFont* font = DefaultFont);
 		void DrawMultiLineTextEx(const UIRect& rect, const UIChar* text, const UIVector4& fillColor, ETextAlign textAlign = TEXT_LEFT, ETextVerticalAlign vAlign = TEXT_V_TOP, Float32 scale = 1.0f, UIFont* font = DefaultFont);
@@ -777,10 +779,10 @@ namespace ZE
 		// Draw Texture
 		void DrawTexture(UITexture* texture, const UIVector4& colorMultiplier, ETextureScale textureScale = SCALE_IMAGE, const UIVector4& scaleOffset = UIVector4(0.0f));
 		void DrawTexture(const UIVector2& dimension, UITexture* texture, const UIVector4& colorMultiplier, ETextureScale textureScale = SCALE_IMAGE, const UIVector4& scaleOffset = UIVector4(0.0f));
-		
+
 		void DrawTextureInPos(const UIVector2& pos, UITexture* texture, const UIVector4& colorMultiplier, ETextureScale textureScale = SCALE_IMAGE, const UIVector4& scaleOffset = UIVector4(0.0f));
 		void DrawTextureInPos(const UIRect& rect, UITexture* texture, const UIVector4& colorMultiplier, ETextureScale textureScale = SCALE_IMAGE, const UIVector4& scaleOffset = UIVector4(0.0f));
-		
+
 		// Draw Scroll Bar
 		Float32 DoScrollBar(const UIVector2& pos, Float32 currentOffset, Float32 directionSize, Float32 actualSize, EDirection scrollDirection = DIR_VERTICAL, const UIScrollBarStyle& scrollBarStyle = DefaultScrollBarStyle);
 
@@ -802,6 +804,6 @@ namespace ZE
 		}
 	};
 
-	
+
 }
 #endif
