@@ -48,6 +48,7 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mode
 		key = ZOOID_KEY_END;
 	}
 
+
 	int keyState = -1;
 	switch (action)
 	{
@@ -138,7 +139,7 @@ int main()
 	ZE::Float32 vec3[3] = { 0.0f, 0.0f, 0.0f };
 	ZE::Float32 vec4[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
 
-	const char* listItem[5] = { "List Item 1", "List Item 2", "List Item 3", "List Item 4", "List Item 5" };
+	const char* listItems[5] = { "List Item 1", "List Item 2", "List Item 3", "List Item 4", "List Item 5" };
 	ZE::Int32 selectionIndex = 1;
 
 	while (!renderer->requestToClose())
@@ -163,7 +164,7 @@ int main()
 		sprintf_s(buffer, "FPS: %.1f", 1.0f / (totalTime / 1000.0f));
 		ZE::UI::DrawTextInPos(ZE::UIVector2{ 0.0f, ZE::UI::GetScreenHeight() - 1.0f * ZE::UI::DefaultFont->calculateTextHeight(1.0f) }, buffer, ZE::UIVector4{ 1.0f });
 
-		if (ZE::UI::BeginPanel("Text Panel...", ZE::UIRect(ZE::UIVector2(150.0f, 100.f), ZE::UIVector2(300.0f, 400.0f)), true))
+		if (ZE::UI::BeginPanel("Text Panel...", ZE::UIRect(ZE::UIVector2(150.0f, 100.f), ZE::UIVector2(300.0f, 200.0f)), false))
 		{
 			ZE::UI::DoText("Test Text");
 			if (ZE::UI::DoButton("Button"))
@@ -185,7 +186,7 @@ int main()
 
 			ZE::UI::DoListView("ListTestWithLambda", 
 				ZE::UIRect(ZE::UIVector2(0.0f, 0.0f), ZE::UIVector2(250.0f, 120.0f)), 
-				listItem, 5, 
+				listItems, 5, 
 				[](const char*& text, ZE::UInt32 idx) 
 				{
 					ZE::UI::DoText(text);
@@ -195,7 +196,7 @@ int main()
 			ZE::UI::DoText("Second List", ZE::UIVector4(1.0f, 0.0f, 0.0f, 1.0f));
 			ZE::UI::DoListView("ListTest3rd",
 				ZE::UIRect(ZE::UIVector2(0.0f, 0.0f), ZE::UIVector2(250.0f, 120.0f)),
-				listItem, 5,
+				listItems, 5,
 				[](const char*& text, ZE::UInt32 idx)
 				{
 					listItemChecked[idx] = ZE::UI::DoCheckBox(text, listItemChecked[idx]);
@@ -205,7 +206,7 @@ int main()
 			ZE::UI::DoText("Third List", ZE::UIVector4(1.0f, 0.0f, 0.0f, 1.0f));
 			if (ZE::UI::DoSelectionListView("ListTest",
 				ZE::UIRect(ZE::UIVector2(0.0f, 0.0f), ZE::UIVector2(250.0f, 70.0f)),
-				listItem, selectionIndex, 5
+				listItems, selectionIndex, 5
 			))
 			{
 				std::cout << "Selection Changed to " << selectionIndex << std::endl;

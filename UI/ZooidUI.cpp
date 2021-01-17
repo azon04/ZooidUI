@@ -639,6 +639,7 @@ namespace ZE
 		rect.m_dimension.y = UIMAX((style->texture ? style->textureSize.y : 0), font->calculateTextHeight(1.0f));
 
 		const bool mouseInside = CheckMouseInside(rect);
+
 		bool bPressed = false;
 		if (mouseInside && MainUIState.mouseState == EButtonState::BUTTON_DOWN)
 		{
@@ -1670,12 +1671,6 @@ namespace ZE
 		drawRect.m_dimension.x = rect.m_dimension.x - 5;
 		drawRect.m_dimension.y = DefaultFont->calculateTextHeight(1.0f) + 10;
 
-		if (!ShouldDrawRect(drawRect))
-		{
-			MainUIState.drawPosDimension.m_pos = MainUIState.drawPosDimension.m_pos + MainUIState.drawDirection * drawRect.m_dimension;
-			return false;
-		}
-
 		const UInt32 _id = GetUIIDFromString(listItem);
 		const bool mouseInside = CheckMouseInside(drawRect);
 
@@ -2104,7 +2099,7 @@ namespace ZE
 		}
 
 		Int32 lineCount = 0;
-		MainUIState.drawer->DrawText(actualPos, fillColor, font, text, scale, true, MainUIState.drawPosDimension.m_dimension.x, textAlign, MainUIState.drawPosDimension.m_dimension, &lineCount);
+		MainUIState.drawer->DrawText(actualPos, fillColor, font, text, scale, true, MainUIState.drawPosDimension.m_dimension.x, textAlign, UIVector2(0.0f), &lineCount);
 
 		MainUIState.drawPosDimension.m_pos = MainUIState.drawPosDimension.m_pos + MainUIState.drawDirection * UIVector2(0.0f, lineCount * font->calculateTextHeight(scale)) + UIVector2(5.0f) * MainUIState.drawDirection;
 	}
@@ -2189,6 +2184,11 @@ namespace ZE
 
 	void UIDrawer::DrawTexture(const UIRect& rect, UITexture* texture, const UIVector4& fillColor, ETextureScale textureScale, const UIVector4& scaleOffset)
 	{
+		if (!UI::ShouldDrawRect(rect))
+		{
+			return;
+		}
+
 #if defined(ZUI_GROUP_PER_TEXTURE) && defined(ZUI_USE_RECT_INSTANCING)
 		UIDrawItem* drawItem = m_currentDrawList->getTextureInstanceDrawItem(texture->getTextureHandle());
 #elif defined(ZUI_GROUP_PER_TEXTURE)
@@ -2392,6 +2392,11 @@ namespace ZE
 
 	void UIDrawer::DrawRect(const UIRect& rect, const UIVector4& fillColor)
 	{
+		if (!UI::ShouldDrawRect(rect))
+		{
+			return;
+		}
+
 #if defined(ZUI_GROUP_PER_TEXTURE) && defined(ZUI_USE_RECT_INSTANCING)
 		UIDrawItem* drawItem = m_currentDrawList->getTextureInstanceDrawItem(0); // Zero for non texture
 #elif defined(ZUI_GROUP_PER_TEXTURE)
@@ -2434,6 +2439,22 @@ namespace ZE
 
 	void UIDrawer::DrawText(UIVector2& pos, const UIVector4& fillColor, UIFont* font, const UIChar* text, Float32 scale /*= 1.0f*/, bool bWordWrap /*= false*/, Float32 maxWidth /*= 0*/, ETextAlign wrapTextAlign /*= TEXT_LEFT*/, const UIVector2& dim, Int32* lineCount)
 	{
+		UIRect drawRect(pos, dim);
+		if (drawRect.m_dimension.x == 0.0f)
+		{
+			drawRect.m_dimension.x = font->calculateTextLength(text, scale);
+		}
+
+		if (drawRect.m_dimension.y == 0.0f)
+		{
+			drawRect.m_dimension.y = bWordWrap ? font->calculateWordWrapTextHeight(text, scale, maxWidth, lineCount) : font->calculateTextHeight(scale);
+		}
+
+		if (!UI::ShouldDrawRect(drawRect))
+		{
+			return;
+		}
+
 #if defined(ZUI_USE_FONT_INSTANCING) && !defined(ZUI_USE_SINGLE_TEXT_ONLY)
 		UIDrawItem* drawItem = m_currentDrawList->getTextureInstanceDrawItem(font->getTextureHandle());
 #elif defined(ZUI_USE_SINGLE_TEXT_ONLY) || !defined(ZUI_GROUP_PER_TEXTURE)
@@ -2490,6 +2511,18 @@ namespace ZE
 
 	void UIDrawer::PushRectMask(const UIRect& rect)
 	{
+		// Culling the rect if it's not supposed to draw
+		// NOTE: once mask ignored, it will be ignored down the path, since the mask is set hierarchically
+		if (!m_maskIgnore)
+		{
+			if (!UI::ShouldDrawRect(rect) && ++m_maskIgnore) { return; }
+		}
+		else
+		{
+			m_maskIgnore++;
+			return;
+		}
+
 		UIDrawItem* drawItem = m_currentDrawList->getNextDrawItem();
 
 		drawItem->m_layer = m_currentLayer;
@@ -2525,6 +2558,12 @@ namespace ZE
 
 	void UIDrawer::PopMask()
 	{
+		if (m_maskIgnore)
+		{
+			m_maskIgnore--;
+			return;
+		}
+
 		UIDrawItem* drawItem = m_currentDrawList->getNextDrawItem();
 		UIDrawItem* pushMaskDrawItem = PushMaskDrawStack.back();
 
@@ -2646,7 +2685,7 @@ namespace ZE
 		return diff.x >= 0 && diff.x <= m_dimension.x && diff.y >= 0 && diff.y <= m_dimension.y;
 	}
 
-	UIRect UIRect::intersect(const UIRect& inRect)
+	UIRect UIRect::intersect(const UIRect& inRect) const
 	{
 		UIRect result;
 
@@ -2669,10 +2708,10 @@ namespace ZE
 		return result;
 	}
 
-	bool UIRect::hasIntersectWith(const UIRect& inRect)
+	bool UIRect::hasIntersectWith(const UIRect& inRect) const
 	{
-		UIVector2 bottomRight = m_pos + m_dimension;
-		UIVector2 otherBottomRight = inRect.m_pos + inRect.m_dimension;
+		const UIVector2 bottomRight = m_pos + m_dimension;
+		const UIVector2 otherBottomRight = inRect.m_pos + inRect.m_dimension;
 		return ((inRect.m_pos.x >= m_pos.x && inRect.m_pos.x <= bottomRight.x)
 			|| (otherBottomRight.x >= m_pos.x && otherBottomRight.x <= bottomRight.x))
 			&&
@@ -2796,6 +2835,15 @@ namespace ZE
 		UInt32 charCode = FT_Get_First_Char(ftFace, &glyphIndex);
 		while (glyphIndex != 0)
 		{
+#ifdef ZUI_FONT_USING_ARRAY_LOOKUP
+			if (charCode >= font->m_charMap.size())
+			{
+				for (UInt32 i = font->m_charMap.size(); i < charCode + 1; i++)
+				{
+					font->m_charMap.push_back(0);
+				}
+			}
+#endif
 			font->m_charMap[charCode] = glyphIndex;
 			charCode = FT_Get_Next_Char(ftFace, charCode, &glyphIndex);
 		}
@@ -2812,15 +2860,14 @@ namespace ZE
 		return font;
 	}
 
-	ZE::Float32 UIFont::calculateTextLength(const UIChar* text, Float32 scale)
+	ZE::Float32 UIFont::calculateTextLength(const UIChar* text, Float32 scale) const
 	{
 		Int32 index = 0;
 		char c = text[index++];
 		Float32 result = 0;
 		while (c != '\0')
 		{
-			Int32 charIndex;
-			HashMapHasAndAssign(m_charMap, c, 0, charIndex);
+			Int32 charIndex = getGlyphIndex(c);
 			result += scale * m_charDesc[charIndex].Advance;
 			c = text[index++];
 		}
@@ -2828,15 +2875,14 @@ namespace ZE
 		return result;
 	}
 
-	ZE::Float32 UIFont::calculateNTextLength(const UIChar* text, Int32 n, Float32 scale)
+	ZE::Float32 UIFont::calculateNTextLength(const UIChar* text, Int32 n, Float32 scale) const
 	{
 		Int32 index = 0;
 		char c = text[index++];
 		Float32 result = 0;
 		while (c != '\0' && n--)
 		{
-			Int32 charIndex;
-			HashMapHasAndAssign(m_charMap, c, 0, charIndex);
+			Int32 charIndex = getGlyphIndex(c);
 			result += scale * m_charDesc[charIndex].Advance;
 			c = text[index++];
 		}
@@ -2844,14 +2890,13 @@ namespace ZE
 		return result;
 	}
 
-	ZE::Int32 UIFont::calculatePositionAtLength(const UIChar* text, Float32 length, Float32 scale)
+	ZE::Int32 UIFont::calculatePositionAtLength(const UIChar* text, Float32 length, Float32 scale) const
 	{
 		Int32 index = 0;
 		char c = text[index++];
 		while (c != '\0' && length > 0)
 		{
-			Int32 charIndex;
-			HashMapHasAndAssign(m_charMap, c, 0, charIndex);
+			Int32 charIndex = getGlyphIndex(c);
 			length -= scale * m_charDesc[charIndex].Advance;
 			c = text[index++];
 		}
@@ -2859,35 +2904,37 @@ namespace ZE
 		return index - 1;
 	}
 
-	ZE::Float32 UIFont::calculateTextHeight(Float32 scale)
+	ZE::Float32 UIFont::calculateTextHeight(Float32 scale) const
 	{
 		return m_fontSize * scale;
 	}
 
-	ZE::Float32 UIFont::calculateWordWrapTextHeight(const UIChar* text, Float32 scale, Int32 maxWidth)
+	ZE::Float32 UIFont::calculateWordWrapTextHeight(const UIChar* text, Float32 scale, Int32 maxWidth, Int32* lineCount)
 	{
 		Int32 index = 0;
 		char c = text[index++];
 
-		Float32 height = 0;
+		const Float32 singleTextHeight = calculateTextHeight(scale);
+		Float32 height = singleTextHeight;
 		Float32 cX = 0;
+		Int32 tempLineCount = 1;
 		while (c != '\0')
 		{
 			if (c == '\n')
 			{
-				height += calculateTextHeight(scale);
+				height += singleTextHeight;
 				c = text[index++];
 				cX = 0;
+				tempLineCount++;
 			}
 
-			Int32 charIndex;
-			HashMapHasAndAssign(m_charMap, c, 0, charIndex);
+			Int32 charIndex = getGlyphIndex(c);
 			UIFontCharDesc& charDesc = m_charDesc[charIndex];
 
 			cX += charDesc.Advance * scale;
 			if (cX > maxWidth)
 			{
-				height += calculateTextHeight(scale);
+				height += singleTextHeight;
 				cX = 0;
 				index--;
 			}
@@ -2895,6 +2942,11 @@ namespace ZE
 			{
 				c = text[index++];
 			}
+		}
+
+		if (lineCount)
+		{
+			*lineCount = tempLineCount;
 		}
 
 		return height;
@@ -2918,8 +2970,7 @@ namespace ZE
 				continue;
 			}
 
-			Int32 charIndex;
-			HashMapHasAndAssign(m_charMap, c, 0, charIndex);
+			Int32 charIndex = getGlyphIndex(c);
 
 			UIFontCharDesc& charDesc = m_charDesc[charIndex];
 
@@ -3007,8 +3058,7 @@ namespace ZE
 				continue;
 			}
 
-			Int32 charIndex;
-			HashMapHasAndAssign(m_charMap, c, 0, charIndex);
+			Int32 charIndex = getGlyphIndex(c);
 			UIFontCharDesc& charDesc = m_charDesc[charIndex];
 
 			Float32 xPos = x + charDesc.Bearing.x * scale;
@@ -3084,8 +3134,7 @@ namespace ZE
 		width = 0;
 		while (c != '\0' && c != '\n')
 		{
-			Int32 charIndex;
-			HashMapHasAndAssign(m_charMap, c, 0, charIndex);
+			Int32 charIndex = getGlyphIndex(c);
 			UIFontCharDesc& charDesc = m_charDesc[charIndex];
 
 			if (width + charDesc.Advance * scale >= maxWidth)
@@ -3114,8 +3163,7 @@ namespace ZE
 		Float32 cX = 0;
 		while (c != '\0' && c != '\n')
 		{
-			Int32 charIndex;
-			HashMapHasAndAssign(m_charMap, c, 0, charIndex);
+			Int32 charIndex = getGlyphIndex(c);
 			UIFontCharDesc& charDesc = m_charDesc[charIndex];
 
 			if (cX + charDesc.Advance * scale >= maxWidth)

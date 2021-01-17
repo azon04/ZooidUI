@@ -37,6 +37,10 @@
 	#define ZUI_USE_SINGLE_TEXT_ONLY
 #endif
 
+// By Default Font using hash table to map character into glyph index, enable this for performance if hash map is slow.
+// Note: This might take more memory.
+#define ZUI_FONT_USING_ARRAY_LOOKUP
+
 // Rendering: Render rectangles and images using one rectangle and instance per object
 #define ZUI_USE_RECT_INSTANCING
 

@@ -65,8 +65,9 @@ namespace ZE
 		DRAW_MASK_POP
 	};
 
-	struct UIVector2
+	class UIVector2
 	{
+	public:
 		Float32 x;
 		Float32 y;
 
@@ -99,8 +100,9 @@ namespace ZE
 	UIVector2 operator-(const UIVector2& v1, const UIVector2& v2);
 	UIVector2 operator*(const UIVector2& v1, const UIVector2& v2);
 
-	struct UIVector4
+	class UIVector4
 	{
+	public:
 		union
 		{
 			struct
@@ -157,8 +159,8 @@ namespace ZE
 
 		bool isContain(const UIVector2& pos) const;
 
-		UIRect intersect(const UIRect& otherRect);
-		bool hasIntersectWith(const UIRect& otherRect);
+		UIRect intersect(const UIRect& otherRect) const;
+		bool hasIntersectWith(const UIRect& otherRect) const;
 	};
 
 
@@ -385,12 +387,22 @@ namespace ZE
 		virtual ~UIFont() { release(); }
 		static UIFont* loadFontFile(const UIChar* fontFilePath, UIRenderer* renderer, Int32 fontSizePx = 15);
 
-		Float32 calculateTextLength(const UIChar* text, Float32 scale);
-		Float32 calculateNTextLength(const UIChar* text, Int32 n, Float32 scale);
-		Int32 calculatePositionAtLength(const UIChar* text, Float32 length, Float32 scale);
+		Float32 calculateTextLength(const UIChar* text, Float32 scale) const;
+		Float32 calculateNTextLength(const UIChar* text, Int32 n, Float32 scale) const;
+		Int32 calculatePositionAtLength(const UIChar* text, Float32 length, Float32 scale) const;
+		UInt32 getGlyphIndex(UInt32 charCode) const
+		{
+#ifdef ZUI_FONT_USING_ARRAY_LOOKUP
+			return m_charMap[charCode];
+#else
+			UInt32 charIndex;
+			HashMapHasAndAssign(m_charMap, charCode, 0, charIndex);
+			return charIndex;
+#endif
+		}
 
-		Float32 calculateTextHeight(Float32 scale);
-		Float32 calculateWordWrapTextHeight(const UIChar* text, Float32 scale, Int32 maxWidth);
+		Float32 calculateTextHeight(Float32 scale) const;
+		Float32 calculateWordWrapTextHeight(const UIChar* text, Float32 scale, Int32 maxWidth, Int32* lineCount = false);
 
 		UInt32 getTextureHandle() const { return m_textureHandle; }
 
@@ -413,7 +425,12 @@ namespace ZE
 		UIRenderer* m_renderer;
 
 		UIArray<UIFontCharDesc> m_charDesc;
+#ifdef ZUI_FONT_USING_ARRAY_LOOKUP
+		UIArray<UInt32> m_charMap;
+#else
 		UIHashMap<UInt32, UInt32> m_charMap;
+#endif // ZUI_FONT_USING_ARRAY_LOOKUP
+
 	};
 
 	class UITexture
@@ -421,10 +438,10 @@ namespace ZE
 		friend class UITextureManager;
 	public:
 
-		Int32 getWidth() { return m_width; }
-		Int32 getHeight() { return m_height; }
+		Int32 getWidth() const { return m_width; }
+		Int32 getHeight() const { return m_height; }
 
-		UInt32 getTextureHandle() { return m_textureHandle; }
+		UInt32 getTextureHandle() const { return m_textureHandle; }
 
 		void release();
 
@@ -469,7 +486,7 @@ namespace ZE
 		//void PushTextureMask(const UIRect& rect, UITexture* texture, ETextureScale textureScale = SCALE_IMAGE, const UIVector4& textureOffset = UIVector4(0.0f));
 		void PopMask();
 
-		UIDrawList* getCurrentDrawList() { return m_currentDrawList; }
+		UIDrawList* getCurrentDrawList() const { return m_currentDrawList; }
 
 	protected:
 		UIDrawList m_drawLists[2]; // Double Buffer
@@ -477,6 +494,7 @@ namespace ZE
 		Float32 m_currentDepth = 0.00001f;
 		Int32 m_currentLayer = 0;
 		const Float32 m_step = 0.00001f;
+		Int32 m_maskIgnore = 0;
 
 		UIArray<UIDrawItem*> PushMaskDrawStack;
 	};
