@@ -6,6 +6,7 @@
 #include <cstdint>
 #include <vector>
 #include <unordered_map>
+#include <cassert>
 
 // Array Type that use in this code. Change to other type if needed
 #define UIArray std::vector
@@ -28,6 +29,10 @@
 
 // Deallocation function. Change to other if needed
 #define UIFREE(object) delete object
+
+// Assertion Helper: Change to match the engine/where it's used
+#define UIASSERT(condition, text, ...) assert(((void)text __VA_ARGS__,condition))
+#define UICHECK(condition) assert(condition)
 
 // Rendering: Font rendering using font instancing
 #define ZUI_USE_FONT_INSTANCING

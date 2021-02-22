@@ -118,7 +118,6 @@ namespace ZE
 
 	UIStack<UInt32> UI::StackIDs;
 
-
 	// COLOR PRESETS
 	UIVector4 COLOR_WHITE(1.0f);
 	UIVector4 COLOR_BLUE_SELECTION(15 / 255.0f, 95 / 255.0f, 168 / 255.0f, 0.5f);
@@ -143,6 +142,7 @@ namespace ZE
 
 	ZE::UInt32 UI::GetUIIDFromString(const UIChar* textData, UInt32 length)
 	{
+		UICHECK(StackIDs.size() > 0);
 		UInt32 parent = StackIDs.back();
 		return ComputeHashString(textData, length, parent);
 	}
@@ -167,6 +167,7 @@ namespace ZE
 
 	void UI::PopDrawRect()
 	{
+		UIASSERT(MainUIState.DrawRectStack.size() > 0, "DrawRectStack is empty, but trying to pop! Possibly missing EndPanel or EndListView.");
 		MainUIState.DrawRectStack.pop_back();
 	}
 
@@ -177,14 +178,7 @@ namespace ZE
 
 	ZE::UIRect UI::CalculateInteractionRect(const UIRect& rect)
 	{
-		if (MainUIState.DrawRectStack.size() == 0)
-		{
-			return rect;
-		}
-		else
-		{
-			return (MainUIState.DrawRectStack.back().intersect(rect));
-		}
+		return (MainUIState.DrawRectStack.size() == 0) ? rect : (MainUIState.DrawRectStack.back().intersect(rect));
 	}
 
 	bool UI::CheckMouseInside(const UIRect& rect)
@@ -210,14 +204,20 @@ namespace ZE
 
 	void UI::Init(Int32 width, Int32 height)
 	{
+		UICHECK(width > 0);
+		UICHECK(height > 0);
+
 		MainUIState.drawer = UINEW(UIDrawer);
+		UIASSERT(MainUIState.drawer, "Failed to create UI Drawer!");
+
 		MainUIState.renderer = Platform::CreateRenderer();
-		MainUIState.timeFromStart = 0.0f;
+		UIASSERT(MainUIState.renderer, "Failed to create UI Renderer!");
 
 		MainUIState.renderer->Init(width, height);
 
+		MainUIState.timeFromStart = 0.0f;
 		MainUIState.textTempLength = TEXT_TEMP_LENGTH;
-		MainUIState.textTempBuffer = UINEW(UIChar[TEXT_TEMP_LENGTH]); // #TODO need to create UIAlloc
+		MainUIState.textTempBuffer = UINEW(UIChar[TEXT_TEMP_LENGTH]);
 
 		MainUIState.textInputFilterChar = nullptr;
 
@@ -246,6 +246,7 @@ namespace ZE
 
 		// Default Font
 		DefaultFont = ZE::UIFont::loadFontFile(MERGE_PATH(RESOURCE_FOLDER, DEFAULT_FONT_PATH), MainUIState.renderer, 16);
+		UIASSERT(DefaultFont, "Default font (%s) can't be found!", DEFAULT_FONT_PATH);
 
 		// Default Font Style
 		DefaultFontStyle.font = DefaultFont;
@@ -2748,7 +2749,7 @@ namespace ZE
 
 	ZE::UIFont* UIFont::loadFontFile(const UIChar* fontFilePath, UIRenderer* renderer, Int32 fontSizePx /*= 15*/)
 	{
-		UIFont* font = UINEW(UIFont);
+		UIFont* font = nullptr;
 
 		FT_Library ftLib;
 		if (FT_Init_FreeType(&ftLib))
@@ -2766,6 +2767,8 @@ namespace ZE
 		}
 
 		FT_Set_Pixel_Sizes(ftFace, 0, fontSizePx);
+
+		font = UINEW(UIFont);
 
 		UInt32 charCount = ftFace->num_glyphs;
 
