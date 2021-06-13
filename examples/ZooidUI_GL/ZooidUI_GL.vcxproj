@@ -34,20 +34,20 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v141</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v141</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v141</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
@@ -89,12 +89,12 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>../../;../../Dependencies/glfw/include;../../Dependencies/glew-2.0.0/include; ../../Dependencies/freetype-2.9.1/include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../../;../../Dependencies/glfw/win32/include;../../Dependencies/glew-2.0.0/include;../../Dependencies/freetype-2.9.1/include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>../../Dependencies/glew-2.0.0/lib/Release/Win32;../../Dependencies/glfw/Debug/lib-vc2015;../../Dependencies/freetype-2.9.1/win32/lib-vc2015/debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>../../Dependencies/glew-2.0.0/lib/Release/Win32;../../Dependencies/glfw/win32/lib-vc2015;../../Dependencies/freetype-2.9.1/win32/lib-vc2015/debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>glew32.lib;glfw3.lib;opengl32.lib;freetype.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
@@ -110,11 +110,18 @@ XCOPY "..\..\Dependencies\freetype-2.9.1\win32\lib-vc2015\debug\*.DLL" "$(Target
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>../../;../../Dependencies/glfw/win64/include;../../Dependencies/glew-2.0.0/include;../../Dependencies/freetype-2.9.1/include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>../../Dependencies/glew-2.0.0/lib/Release/x64;../../Dependencies/glfw/win64/lib-vc2015;../../Dependencies/freetype-2.9.1/x64/lib-vc2015/debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>glew32.lib;glfw3.lib;opengl32.lib;freetype.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PostBuildEvent>
+      <Command>XCOPY "..\..\Dependencies\glew-2.0.0\bin\Release\x64\*.DLL" "$(TargetDir)" /D /K /Y
+XCOPY "..\..\Dependencies\freetype-2.9.1\x64\lib-vc2015\release\*.DLL" "$(TargetDir)" /D /K /Y</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -126,14 +133,14 @@ XCOPY "..\..\Dependencies\freetype-2.9.1\win32\lib-vc2015\debug\*.DLL" "$(Target
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>../../;../../Dependencies/glfw/include;../../Dependencies/glew-2.0.0/include; ../../Dependencies/freetype-2.9.1/include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../../;../../Dependencies/glfw/win32/include;../../Dependencies/glew-2.0.0/include; ../../Dependencies/freetype-2.9.1/include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>../../Dependencies/glew-2.0.0/lib/Release/Win32;../../Dependencies/glfw/Debug/lib-vc2015;../../Dependencies/freetype-2.9.1/win32/lib-vc2015/release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>../../Dependencies/glew-2.0.0/lib/Release/Win32;../../Dependencies/glfw/win32/lib-vc2015;../../Dependencies/freetype-2.9.1/win32/lib-vc2015/release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>glew32.lib;glfw3.lib;opengl32.lib;freetype.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
@@ -151,13 +158,20 @@ XCOPY "..\..\Dependencies\freetype-2.9.1\win32\lib-vc2015\release\*.DLL" "$(Targ
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>../../;../../Dependencies/glfw/win64/include;../../Dependencies/glew-2.0.0/include;../../Dependencies/freetype-2.9.1/include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>../../Dependencies/glew-2.0.0/lib/Release/x64;../../Dependencies/glfw/win64/lib-vc2015;../../Dependencies/freetype-2.9.1/x64/lib-vc2015/release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>glew32.lib;glfw3.lib;opengl32.lib;freetype.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PostBuildEvent>
+      <Command>XCOPY "..\..\Dependencies\glew-2.0.0\bin\Release\x64\*.DLL" "$(TargetDir)" /D /K /Y
+XCOPY "..\..\Dependencies\freetype-2.9.1\x64\lib-vc2015\release\*.DLL" "$(TargetDir)" /D /K /Y</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\..\UI\External\Image\stb_image.h" />
