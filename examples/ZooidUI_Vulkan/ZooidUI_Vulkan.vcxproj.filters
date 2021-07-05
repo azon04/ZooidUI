@@ -1,0 +1,110 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="UI">
+      <UniqueIdentifier>{24176fc8-1698-4d50-92b8-53f7cad901a1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Vulkan">
+      <UniqueIdentifier>{2acb4b13-3355-4c43-8ea6-937861d19a7f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Vulkan\Shaders">
+      <UniqueIdentifier>{0661ce34-a1b9-4dcb-a492-a52a20fa9aa0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Vulkan\External">
+      <UniqueIdentifier>{356e0d3f-5468-44c3-9fb9-685dad599948}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Vulkan\External\Image">
+      <UniqueIdentifier>{dd293f4b-8109-4e4d-a1a7-ab4df85e218c}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\UI\ZooidUI.h">
+      <Filter>UI</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\UI\UIRenderer.h">
+      <Filter>UI</Filter>
+    </ClInclude>
+    <ClInclude Include="Vulkan_UIRenderer.h">
+      <Filter>Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="Shader.h">
+      <Filter>Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\UI\ZooidUI_Config.h">
+      <Filter>UI</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\UI\External\Image\stb_image.h">
+      <Filter>Vulkan\External\Image</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Utils\Timer.h">
+      <Filter>Vulkan</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\UI\ZooidUI.cpp">
+      <Filter>UI</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\UI\UIRenderer.cpp">
+      <Filter>UI</Filter>
+    </ClCompile>
+    <ClCompile Include="Main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Vulkan_UIRenderer.cpp">
+      <Filter>Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="Shader.cpp">
+      <Filter>Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\UI\External\Image\stb_image.cpp">
+      <Filter>Vulkan\External\Image</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Shaders\BaseShapeShader_Color.frag">
+      <Filter>Vulkan\Shaders</Filter>
+    </None>
+    <None Include="Shaders\BaseShapeShader_Texture.frag">
+      <Filter>Vulkan\Shaders</Filter>
+    </None>
+    <None Include="Shaders\BaseShapeShader_Color_Instance.frag">
+      <Filter>Vulkan\Shaders</Filter>
+    </None>
+    <None Include="Shaders\BaseShapeShader.vert">
+      <Filter>Vulkan\Shaders</Filter>
+    </None>
+    <None Include="Shaders\BaseTextShader.vert">
+      <Filter>Vulkan\Shaders</Filter>
+    </None>
+    <None Include="Shaders\BaseTextShader_Frag.frag">
+      <Filter>Vulkan\Shaders</Filter>
+    </None>
+    <None Include="Shaders\BaseShapeShader_Instance.vert">
+      <Filter>Vulkan\Shaders</Filter>
+    </None>
+    <None Include="Shaders\BaseShapeShader_Texture_Instance.vert">
+      <Filter>Vulkan\Shaders</Filter>
+    </None>
+    <None Include="Shaders\BaseShapeShader_Texture_Instance_Frag.frag">
+      <Filter>Vulkan\Shaders</Filter>
+    </None>
+    <None Include="Shaders\BaseTextShader_Instance.vert">
+      <Filter>Vulkan\Shaders</Filter>
+    </None>
+    <None Include="Shaders\BaseTextShader_Instance_Frag.frag">
+      <Filter>Vulkan\Shaders</Filter>
+    </None>
+  </ItemGroup>
+</Project>
