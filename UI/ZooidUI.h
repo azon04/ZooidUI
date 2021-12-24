@@ -157,12 +157,13 @@ namespace ZE
 		UIVector2 m_dimension;
 		Float32 m_roundness = 0.0f;
 
+	public:
 		bool isContain(const UIVector2& pos) const;
-
-		UIRect intersect(const UIRect& otherRect) const;
+		UIRect intersect(const UIRect& otherRect) const;	
 		bool hasIntersectWith(const UIRect& otherRect) const;
 	};
 
+	UIRect operator+(const UIRect& r1, const UIRect& r2);
 
 	// Vertex Data Structure
 	struct UIVertex
@@ -185,8 +186,8 @@ namespace ZE
 	struct UIPanelState : UIScrollState
 	{
 		UIVector2 headerSize;
-		bool closed;
-		bool bAutoSize;
+		bool bCollapsed : 1;
+		bool bAutoSize : 1;
 	};
 
 	// Menu Info
@@ -476,7 +477,8 @@ namespace ZE
 		void DrawTexture(const UIRect& rect, UITexture* texture, const UIVector4& fillColor, ETextureScale textureScale = SCALE_IMAGE, const UIVector4& scaleOffset = UIVector4(0.0f));
 		void DrawRect(const UIRect& rect, const UIVector4& fillColor);
 		void DrawText(UIVector2& pos, const UIVector4& fillColor, UIFont* font, const UIChar* text, Float32 scale = 1.0f, bool bWordWrap = false, Float32 maxWidth = 0, ETextAlign wrapTextAlign = TEXT_LEFT, const UIVector2& dim = UIVector2(0.0f), Int32* lineCount = nullptr);
-		void DrawShape(UIArray<UIVector2>& points, const UIVector4& fillColor);
+		void DrawShape(UIVector2* points, UInt32 pointCount, const UIVector4& fillColor, bool bTriangleList = false);
+		void DrawShapeOffset(const UIVector2& offset, UIVector2* points, UInt32 pointCount, const UIVector4& fillColor, bool bTriangleList = false);
 		void Reset();
 		void SwapBuffer();
 		void SetLayer(Int32 layer) { m_currentLayer = layer; }
@@ -514,8 +516,8 @@ namespace ZE
 		Float32 fontScale = 1.0f;
 	};
 
-	// Button Style
-	struct UIStyle
+	// Styles
+	struct UITextureStyle
 	{
 		UIVector4 textureOffset;
 		UIVector4 fillColor;
@@ -524,18 +526,34 @@ namespace ZE
 		ETextureScale textureScale = SCALE_IMAGE;
 	};
 
+	struct UIImageButtonStyle
+	{
+		UITextureStyle up;
+		UITextureStyle hover;
+		UITextureStyle down;
+		UITextureStyle selected;
+		UIFontStyle fontStyle;
+	};
+
+	struct UIRectStyle
+	{
+		UIVector4 fillColor;
+		UIVector4 borderColor;
+		Float32 borderThickness;
+	};
+
 	struct UIButtonStyle
 	{
-		UIStyle up;
-		UIStyle hover;
-		UIStyle down;
-		UIStyle selected;
+		UIRectStyle up;
+		UIRectStyle hover;
+		UIRectStyle down;
+		UIRectStyle selected;
 		UIFontStyle fontStyle;
 	};
 
 	struct UISliderStyle
 	{
-		UIStyle slider;
+		UITextureStyle slider;
 		UIButtonStyle sliderButton;
 	};
 
@@ -543,32 +561,46 @@ namespace ZE
 	{
 		Float32 scrollLineSize;
 		Float32 scrollButtonSize;
-		UIStyle scrollBar;
+		UITextureStyle scrollBar;
 		UIButtonStyle scrollButton;
 	};
 
 	struct UIPanelStyle
 	{
-		UIStyle panel;
-		UIStyle panelClosedBG;
-		Float32 headerHeight;
-		UIStyle panelClosed;
-		UIStyle panelOpened;
+#ifdef ZUI_STYLE_USE_NO_TEXTURE
+		UIVector4 headerColor;
+		UIVector4 fillColor;
+		UIVector4 borderColor;
+		UIVector2 collapseArrowSize;
+		Float32 borderSize;
+		Float32 headerOffset;
+#else
+		UITextureStyle panel;
+		UITextureStyle panelClosedBG;
+		UITextureStyle panelClosed;
+		UITextureStyle panelOpened;
+#endif
 		UIFontStyle headerFontStyle;
+		Float32 headerHeight;
 	};
 
 	struct UIDropdownStyle
 	{
-		UIButtonStyle dropdownButtonStyle;
-		UIStyle selectorHoverStyle;
-		UIStyle selectorStyle;
+		UIImageButtonStyle dropdownButtonStyle;
+		UITextureStyle selectorHoverStyle;
+		UITextureStyle selectorStyle;
 		UIFontStyle selectorFontStyle;
 	};
 
 	struct UITextInputStyle
 	{
-		UIStyle defaultStyle;
-		UIStyle activeStyle;
+#ifdef ZUI_STYLE_USE_NO_TEXTURE
+		UIRectStyle defaultStyle;
+		UIRectStyle activeStyle;
+#else
+		UITextureStyle defaultStyle;
+		UITextureStyle activeStyle;
+#endif
 		UIFontStyle fontStyle;
 		UIChar cursorChar;
 	};
@@ -576,9 +608,9 @@ namespace ZE
 	struct UIMenuStyle
 	{
 		UIFontStyle fontStyle;
-		UIStyle background;
-		UIStyle hover;
-		UIStyle selected;
+		UITextureStyle background;
+		UITextureStyle hover;
+		UITextureStyle selected;
 		Float32 menuPadding;
 	};
 
@@ -610,8 +642,9 @@ namespace ZE
 
 		// Default Styles
 		extern UIButtonStyle DefaultButtonStyle;
-		extern UIButtonStyle DefaultCheckBoxStyle;
-		extern UIButtonStyle DefaultRadioBtnStyle;
+		extern UIImageButtonStyle DefaultImageButtonStyle;
+		extern UIImageButtonStyle DefaultCheckBoxStyle;
+		extern UIImageButtonStyle DefaultRadioBtnStyle;
 		extern UISliderStyle DefaultSliderStyle;
 		extern UIPanelStyle DefaultPanelStyle;
 		extern UIDropdownStyle DefaultDropdownStyle;
@@ -674,17 +707,23 @@ namespace ZE
 		// Button
 		bool DoButton(const UIChar* label, const UIButtonStyle& buttonStyle = DefaultButtonStyle);
 		bool DoButtonEx(const UIChar* label, UIRect& rect, const UIButtonStyle& buttonStyle = DefaultButtonStyle);
-
+#ifdef ZUI_STYLE_USE_NO_TEXTURE
+		bool DoImageButton(const UIChar* label, const UIImageButtonStyle& buttonStyle);
+		bool DoImageButtonEx(const UIChar* label, UIRect& rect, const UIImageButtonStyle& buttonStyle);
+#else
+		bool DoImageButton(const UIChar* label, const UIImageButtonStyle& buttonStyle = DefaultImageButtonStyle);
+		bool DoImageButtonEx(const UIChar* label, UIRect& rect, const UIImageButtonStyle& buttonStyle = DefaultImageButtonStyle);
+#endif
 		// Return True if Checked
-		bool DoCheckBox(const UIChar* text, bool bChecked, const UIButtonStyle& checkBoxStyle = DefaultCheckBoxStyle);
-		bool DoCheckBoxEx(const UIVector2& pos, const UIChar* text, bool bChecked, UIRect& outRect = ZE::UIRect(), const UIButtonStyle& checkBoxStyle = DefaultCheckBoxStyle);
+		bool DoCheckBox(const UIChar* text, bool bChecked, const UIImageButtonStyle& checkBoxStyle = DefaultCheckBoxStyle);
+		bool DoCheckBoxEx(const UIVector2& pos, const UIChar* text, bool bChecked, UIRect& outRect = ZE::UIRect(), const UIImageButtonStyle& checkBoxStyle = DefaultCheckBoxStyle);
 
 		// Single Radio button checked if _buttonId == _selectionId
-		void DoRadioButton(Int32 _buttonId, const UIVector2& pos, const UIChar* text, Int32* _selectedId, const UIButtonStyle& checkBoxStyle = DefaultRadioBtnStyle);
+		void DoRadioButton(Int32 _buttonId, const UIVector2& pos, const UIChar* text, Int32* _selectedId, const UIImageButtonStyle& checkBoxStyle = DefaultRadioBtnStyle);
 
 		// Do collection of radio buttons based on textArray
-		void DoRadioButtons(const UIChar** textArray, UInt32 textArrayLen, Int32* _selectionId, const UIButtonStyle& radioButtonStyle = DefaultRadioBtnStyle);
-		void DoRadioButtonsEx(const UIVector2& startPos, const UIChar** textArray, UInt32 textArrayLen, Int32* _selectionId, const UIButtonStyle& radioButtonStyle = DefaultRadioBtnStyle);
+		void DoRadioButtons(const UIChar** textArray, UInt32 textArrayLen, Int32* _selectionId, const UIImageButtonStyle& radioButtonStyle = DefaultRadioBtnStyle);
+		void DoRadioButtonsEx(const UIVector2& startPos, const UIChar** textArray, UInt32 textArrayLen, Int32* _selectionId, const UIImageButtonStyle& radioButtonStyle = DefaultRadioBtnStyle);
 
 		// Slider
 		void DoSlider(Float32* percent, const UISliderStyle& sliderStyle = DefaultSliderStyle);

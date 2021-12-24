@@ -52,6 +52,9 @@
 // Rendering: Rendering group by texture
 //#define ZUI_GROUP_PER_TEXTURE
 
+// Assets: No textures used for UI Frames
+#define ZUI_STYLE_USE_NO_TEXTURE
+
 // Assets: Main Asset Folder - Where the UI engine looking for assets to use as default
 #define RESOURCE_FOLDER "../../Resource/"
 
