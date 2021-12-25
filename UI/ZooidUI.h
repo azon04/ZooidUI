@@ -477,8 +477,8 @@ namespace ZE
 		void DrawTexture(const UIRect& rect, UITexture* texture, const UIVector4& fillColor, ETextureScale textureScale = SCALE_IMAGE, const UIVector4& scaleOffset = UIVector4(0.0f));
 		void DrawRect(const UIRect& rect, const UIVector4& fillColor);
 		void DrawText(UIVector2& pos, const UIVector4& fillColor, UIFont* font, const UIChar* text, Float32 scale = 1.0f, bool bWordWrap = false, Float32 maxWidth = 0, ETextAlign wrapTextAlign = TEXT_LEFT, const UIVector2& dim = UIVector2(0.0f), Int32* lineCount = nullptr);
-		void DrawShape(UIVector2* points, UInt32 pointCount, const UIVector4& fillColor, bool bTriangleList = false);
-		void DrawShapeOffset(const UIVector2& offset, UIVector2* points, UInt32 pointCount, const UIVector4& fillColor, bool bTriangleList = false);
+		void DrawCollapseArrow(const UIVector2& pos, const UIVector2& dimension, bool bCollapsed);
+		
 		void Reset();
 		void SwapBuffer();
 		void SetLayer(Int32 layer) { m_currentLayer = layer; }

@@ -1510,14 +1510,7 @@ namespace ZE
 			}
 
 #ifdef ZUI_STYLE_USE_NO_TEXTURE
-			UIVector2 points[3] = { UIVector2(2.0f, 2.0f),  UIVector2(checkBoxStyle.collapseArrowSize.x * 0.5f, checkBoxStyle.collapseArrowSize.y - 2.0f), UIVector2(checkBoxStyle.collapseArrowSize.x - 2.0f, 2.0f) };
-			if (panelState.bCollapsed)
-			{
-				points[2].x = checkBoxStyle.collapseArrowSize.x - 2.0f; points[2].y = checkBoxStyle.collapseArrowSize.y * 0.5f;
-				points[1].x = 2.0f; points[1].y = checkBoxStyle.collapseArrowSize.y - 2.0f;
-			}
-
-			MainUIState.drawer->DrawShapeOffset(rect.m_pos, points, 3, UIVector4(1.0f), true);
+			MainUIState.drawer->DrawCollapseArrow(rect.m_pos, checkBoxStyle.collapseArrowSize, panelState.bCollapsed);
 #else
 			if (!*bCollapsed)
 			{
@@ -2660,7 +2653,7 @@ namespace ZE
 		m_currentDepth += m_step;
 	}
 
-	void UIDrawer::DrawShape(UIVector2* points, UInt32 pointCount, const UIVector4& fillColor, bool triangleList)
+	void UIDrawer::DrawCollapseArrow(const UIVector2& pos, const UIVector2& dimension, bool bCollapsed)
 	{
 #if defined(ZUI_GROUP_PER_TEXTURE) && defined(ZUI_USE_RECT_INSTANCING)
 		UIDrawItem* drawItem = m_currentDrawList->getTextureInstanceDrawItem(0); // Zero for non texture
@@ -2673,58 +2666,17 @@ namespace ZE
 		drawItem->m_layer = m_currentLayer;
 		Float32 depth = m_currentLayer * 0.5f + m_currentDepth;
 
-		UIASSERT(pointCount < 3, "Can't Draw Shape with less than 2 points.");
-
-		if (triangleList)
+		if (bCollapsed)
 		{
-			for (int i = 0; i < pointCount; i++)
-			{
-				UIVector2& point = points[i];
-				drawItem->m_vertices.push_back(UIVertex{ point, depth, UIVector2(), UIVector4(1.0f) });
-			}
+			drawItem->m_vertices.push_back(UIVertex{ pos + UIVector2(2.0f), depth, UIVector2(), UIVector4(1.0f) });
+			drawItem->m_vertices.push_back(UIVertex{ pos + UIVector2(2.0f, dimension.y - 2.0f), depth, UIVector2(), UIVector4(1.0f) });
+			drawItem->m_vertices.push_back(UIVertex{ pos + UIVector2(dimension.x - 2.0f, dimension.y * 0.5f), depth, UIVector2(), UIVector4(1.0f) });
 		}
 		else
 		{
-			for (int i = 2; i < pointCount; i++)
-			{
-				drawItem->m_vertices.push_back(UIVertex{ points[i - 2], depth, UIVector2(), UIVector4(1.0f) });
-				drawItem->m_vertices.push_back(UIVertex{ points[i - 1], depth, UIVector2(), UIVector4(1.0f) });
-				drawItem->m_vertices.push_back(UIVertex{ points[i], depth, UIVector2(), UIVector4(1.0f) });
-			}
-		}
-	}
-
-	void UIDrawer::DrawShapeOffset(const UIVector2& offset, UIVector2* points, UInt32 pointCount, const UIVector4& fillColor, bool bTriangleList /*= false*/)
-	{
-#if defined(ZUI_GROUP_PER_TEXTURE) && defined(ZUI_USE_RECT_INSTANCING)
-		UIDrawItem* drawItem = m_currentDrawList->getTextureInstanceDrawItem(0); // Zero for non texture
-#elif defined(ZUI_GROUP_PER_TEXTURE)
-		UIDrawItem* drawItem = m_currentDrawList->getTextureDrawItem(0); // Zero for non texture
-#else
-		UIDrawItem* drawItem = m_currentDrawList->getNextDrawItem();
-#endif
-
-		drawItem->m_layer = m_currentLayer;
-		Float32 depth = m_currentLayer * 0.5f + m_currentDepth;
-
-		UIASSERT(pointCount <= 3, "Can't Draw Shape with less than 2 points.");
-
-		if (bTriangleList)
-		{
-			for (int i = 0; i < pointCount; i++)
-			{
-				UIVector2& point = points[i];
-				drawItem->m_vertices.push_back(UIVertex{ offset + point, depth, UIVector2(), UIVector4(1.0f) });
-			}
-		}
-		else
-		{
-			for (int i = 2; i < pointCount; i++)
-			{
-				drawItem->m_vertices.push_back(UIVertex{ offset + points[i - 2], depth, UIVector2(), UIVector4(1.0f) });
-				drawItem->m_vertices.push_back(UIVertex{ offset + points[i - 1], depth, UIVector2(), UIVector4(1.0f) });
-				drawItem->m_vertices.push_back(UIVertex{ offset + points[i], depth, UIVector2(), UIVector4(1.0f) });
-			}
+			drawItem->m_vertices.push_back(UIVertex{ pos + UIVector2(2.0f), depth, UIVector2(), UIVector4(1.0f) });
+			drawItem->m_vertices.push_back(UIVertex{ pos + UIVector2(dimension.x * 0.5f, dimension.y - 2.0f), depth, UIVector2(), UIVector4(1.0f) });
+			drawItem->m_vertices.push_back(UIVertex{ pos + UIVector2(dimension.x - 2.0f, 2.0f), depth, UIVector2(), UIVector4(1.0f) });
 		}
 	}
 
