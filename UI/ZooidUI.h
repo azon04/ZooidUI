@@ -478,7 +478,9 @@ namespace ZE
 		void DrawRect(const UIRect& rect, const UIVector4& fillColor);
 		void DrawText(UIVector2& pos, const UIVector4& fillColor, UIFont* font, const UIChar* text, Float32 scale = 1.0f, bool bWordWrap = false, Float32 maxWidth = 0, ETextAlign wrapTextAlign = TEXT_LEFT, const UIVector2& dim = UIVector2(0.0f), Int32* lineCount = nullptr);
 		void DrawCollapseArrow(const UIVector2& pos, const UIVector2& dimension, bool bCollapsed);
-		
+		void DrawCheckboxFrame(const UIRect& rect);
+		void DrawCheckMark(const UIRect& rect);
+
 		void Reset();
 		void SwapBuffer();
 		void SetLayer(Int32 layer) { m_currentLayer = layer; }

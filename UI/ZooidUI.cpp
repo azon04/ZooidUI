@@ -754,6 +754,19 @@ namespace ZE
 		}
 
 		Float32 textOffsetX = 0;
+
+#ifdef ZUI_STYLE_USE_NO_TEXTURE
+		UIRect drawRect;
+		drawRect.m_dimension = { 16.0f, 16.0f };
+		drawRect.m_pos = pos + UIVector2(0.0f, (rect.m_dimension.y - drawRect.m_dimension.y) * 0.5f);
+		MainUIState.drawer->DrawCheckboxFrame(drawRect);
+		textOffsetX = 16.0f;
+
+		if (bChecked)
+		{
+			MainUIState.drawer->DrawCheckMark(drawRect);
+		}
+#else
 		if (!bChecked)
 		{
 			style = &(checkBoxStyle.up);
@@ -786,6 +799,7 @@ namespace ZE
 				MainUIState.drawer->DrawTexture(drawRect, checkBoxStyle.selected.texture, checkBoxStyle.selected.fillColor);
 			}
 		}
+#endif
 
 		if (text[0] != '\0')
 		{
@@ -1483,7 +1497,7 @@ namespace ZE
 	namespace UI
 	{
 		// Helper for Panel Collapse Button
-		bool DoPanelCollapseButton(UIPanelState& panelState, UIRect& rect, const UIPanelStyle& checkBoxStyle)
+		bool DoPanelCollapseButton(UIPanelState& panelState, UIRect& rect, const UIPanelStyle& panelStyle)
 		{
 			const UInt32 _id = GetUIIDFromPointer(&panelState);
 
@@ -1510,20 +1524,20 @@ namespace ZE
 			}
 
 #ifdef ZUI_STYLE_USE_NO_TEXTURE
-			MainUIState.drawer->DrawCollapseArrow(rect.m_pos, checkBoxStyle.collapseArrowSize, panelState.bCollapsed);
+			MainUIState.drawer->DrawCollapseArrow(rect.m_pos, panelStyle.collapseArrowSize, panelState.bCollapsed);
 #else
 			if (!*bCollapsed)
 			{
-				if (checkBoxStyle.panelOpened.texture)
+				if (panelStyle.panelOpened.texture)
 				{
 					MainUIState.drawer->DrawTexture(rect, style->texture, style->fillColor);
 				}
 			}
 			else
 			{
-				if (checkBoxStyle.panelClosed.texture)
+				if (panelStyle.panelClosed.texture)
 				{
-					MainUIState.drawer->DrawTexture(rect, checkBoxStyle.panelClosed.texture, checkBoxStyle.panelClosed.fillColor);
+					MainUIState.drawer->DrawTexture(rect, panelStyle.panelClosed.texture, panelStyle.panelClosed.fillColor);
 				}
 			}
 #endif
@@ -2678,6 +2692,82 @@ namespace ZE
 			drawItem->m_vertices.push_back(UIVertex{ pos + UIVector2(dimension.x * 0.5f, dimension.y - 2.0f), depth, UIVector2(), UIVector4(1.0f) });
 			drawItem->m_vertices.push_back(UIVertex{ pos + UIVector2(dimension.x - 2.0f, 2.0f), depth, UIVector2(), UIVector4(1.0f) });
 		}
+
+		m_currentDepth += m_step;
+	}
+
+	void UIDrawer::DrawCheckboxFrame(const UIRect& rect)
+	{
+		if (!UI::ShouldDrawRect(rect))
+		{
+			return;
+		}
+
+#if defined(ZUI_GROUP_PER_TEXTURE) && defined(ZUI_USE_RECT_INSTANCING)
+		UIDrawItem* drawItem = m_currentDrawList->getTextureInstanceDrawItem(0); // Zero for non texture
+#elif defined(ZUI_GROUP_PER_TEXTURE)
+		UIDrawItem* drawItem = m_currentDrawList->getTextureDrawItem(0); // Zero for non texture
+#else
+		UIDrawItem* drawItem = m_currentDrawList->getNextDrawItem();
+#endif
+
+		drawItem->m_layer = m_currentLayer;
+		Float32 depth = m_currentLayer * 0.5f + m_currentDepth;
+
+		const Float32 thickness = 2.0f;
+		drawItem->m_instances.push_back(UIDrawInstance{ rect.m_pos, depth, UIVector2(rect.m_dimension.x, thickness), rect.m_roundness, COLOR_WHITE });
+		drawItem->m_instances.push_back(UIDrawInstance{ rect.m_pos, depth, UIVector2(thickness, rect.m_dimension.y), rect.m_roundness, COLOR_WHITE });
+		drawItem->m_instances.push_back(UIDrawInstance{ rect.m_pos + UIVector2(rect.m_dimension.x - thickness, 0.0f), depth, UIVector2(thickness, rect.m_dimension.y), rect.m_roundness, COLOR_WHITE });
+		drawItem->m_instances.push_back(UIDrawInstance{ rect.m_pos + UIVector2(0.0f, rect.m_dimension.y - thickness), depth, UIVector2(rect.m_dimension.y, thickness), rect.m_roundness, COLOR_WHITE });
+		drawItem->m_bUsingRectInstance = true;
+
+		m_currentDepth += m_step;
+	}
+
+	void UIDrawer::DrawCheckMark(const UIRect& rect)
+	{
+		if (!UI::ShouldDrawRect(rect))
+		{
+			return;
+		}
+
+#if defined(ZUI_GROUP_PER_TEXTURE) && defined(ZUI_USE_RECT_INSTANCING)
+		UIDrawItem* drawItem = m_currentDrawList->getTextureInstanceDrawItem(0); // Zero for non texture
+#elif defined(ZUI_GROUP_PER_TEXTURE)
+		UIDrawItem* drawItem = m_currentDrawList->getTextureDrawItem(0); // Zero for non texture
+#else
+		UIDrawItem* drawItem = m_currentDrawList->getNextDrawItem();
+#endif
+
+		drawItem->m_layer = m_currentLayer;
+		Float32 depth = m_currentLayer * 0.5f + m_currentDepth;
+
+		const Float32 thickness = 3.0f;
+		const Float32 padding = 2.5f;
+		const UIVector2 a = rect.m_pos + UIVector2(padding, rect.m_dimension.y * 0.5);
+		const UIVector2 b = rect.m_pos + UIVector2(padding + thickness, rect.m_dimension.y * 0.5);
+		const UIVector2 c = rect.m_pos + UIVector2(rect.m_dimension.x * 0.5f, rect.m_dimension.y - padding - thickness);
+		const UIVector2 d = rect.m_pos + UIVector2(rect.m_dimension.x * 0.5f, rect.m_dimension.y - padding);
+		const UIVector2 e = rect.m_pos + UIVector2(rect.m_dimension.x - padding - thickness, padding);
+		const UIVector2 f = rect.m_pos + UIVector2(rect.m_dimension.x - padding, padding);
+		
+		drawItem->m_vertices.push_back(UIVertex{ a, depth, UIVector2(), UIVector4(1.0f) });
+		drawItem->m_vertices.push_back(UIVertex{ c, depth, UIVector2(), UIVector4(1.0f) });
+		drawItem->m_vertices.push_back(UIVertex{ b, depth, UIVector2(), UIVector4(1.0f) });
+		
+		drawItem->m_vertices.push_back(UIVertex{ a, depth, UIVector2(), UIVector4(1.0f) });
+		drawItem->m_vertices.push_back(UIVertex{ d, depth, UIVector2(), UIVector4(1.0f) });
+		drawItem->m_vertices.push_back(UIVertex{ c, depth, UIVector2(), UIVector4(1.0f) });
+
+		drawItem->m_vertices.push_back(UIVertex{ c, depth, UIVector2(), UIVector4(1.0f) });
+		drawItem->m_vertices.push_back(UIVertex{ d, depth, UIVector2(), UIVector4(1.0f) });
+		drawItem->m_vertices.push_back(UIVertex{ e, depth, UIVector2(), UIVector4(1.0f) });
+
+		drawItem->m_vertices.push_back(UIVertex{ d, depth, UIVector2(), UIVector4(1.0f) });
+		drawItem->m_vertices.push_back(UIVertex{ f, depth, UIVector2(), UIVector4(1.0f) });
+		drawItem->m_vertices.push_back(UIVertex{ e, depth, UIVector2(), UIVector4(1.0f) });
+
+		m_currentDepth += m_step;
 	}
 
 	void UIDrawer::DrawText(UIVector2& pos, const UIVector4& fillColor, UIFont* font, const UIChar* text, Float32 scale /*= 1.0f*/, bool bWordWrap /*= false*/, Float32 maxWidth /*= 0*/, ETextAlign wrapTextAlign /*= TEXT_LEFT*/, const UIVector2& dim, Int32* lineCount)
