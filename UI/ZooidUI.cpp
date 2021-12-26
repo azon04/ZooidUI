@@ -349,6 +349,27 @@ namespace ZE
 #endif
 
 		// Default Dropdown Style
+#ifdef ZUI_STYLE_USE_NO_TEXTURE
+		DefaultDropdownStyle.dropdownButtonStyle.up.fillColor = UIVector4(0.3f, 0.3f, 0.3f, 1.0f);
+		DefaultDropdownStyle.dropdownButtonStyle.up.borderColor = COLOR_BLACK;
+		DefaultDropdownStyle.dropdownButtonStyle.up.borderThickness = 1.0f;
+		DefaultDropdownStyle.dropdownButtonStyle.down.fillColor = UIVector4(0.3f, 0.3f, 0.3f, 1.0f);
+		DefaultDropdownStyle.dropdownButtonStyle.down.borderColor = COLOR_BLACK;
+		DefaultDropdownStyle.dropdownButtonStyle.down.borderThickness = 1.0f;
+		DefaultDropdownStyle.dropdownButtonStyle.hover.fillColor = UIVector4(0.3f, 0.3f, 0.3f, 1.0f);
+		DefaultDropdownStyle.dropdownButtonStyle.hover.borderColor = COLOR_BLUE_SELECTION;
+		DefaultDropdownStyle.dropdownButtonStyle.hover.borderThickness = 2.0f;
+		DefaultDropdownStyle.dropdownButtonStyle.fontStyle.font = DefaultFont;
+		DefaultDropdownStyle.dropdownButtonStyle.fontStyle.fontScale = 1.0f;
+		DefaultDropdownStyle.selectorStyle.fillColor = UIVector4(0.25f, 0.25f, 0.25f, 1.0f);
+		DefaultDropdownStyle.selectorStyle.borderColor = COLOR_BLACK;
+		DefaultDropdownStyle.selectorStyle.borderThickness = 1.0f;
+		DefaultDropdownStyle.selectorHoverStyle.fillColor = COLOR_BLUE_HOVERED;
+		DefaultDropdownStyle.selectorHoverStyle.borderColor = COLOR_BLACK;
+		DefaultDropdownStyle.selectorHoverStyle.borderThickness = 1.0f;
+		DefaultDropdownStyle.selectorFontStyle.font = DefaultFont;
+		DefaultDropdownStyle.selectorFontStyle.fontScale = 1.0f;
+#else
 		DefaultDropdownStyle.dropdownButtonStyle.up.texture = dropdownBtnUp;
 		DefaultDropdownStyle.dropdownButtonStyle.up.fillColor = COLOR_WHITE;
 		DefaultDropdownStyle.dropdownButtonStyle.up.textureOffset = UIVector4(0.12f, 0.12f, 0.075f, 0.4f);
@@ -367,6 +388,7 @@ namespace ZE
 		DefaultDropdownStyle.selectorHoverStyle.fillColor = COLOR_BLUE_HOVERED;
 		DefaultDropdownStyle.selectorFontStyle.font = DefaultFont;
 		DefaultDropdownStyle.selectorFontStyle.fontScale = 1.0f;
+#endif
 
 		// Default Text Input Style
 #ifdef ZUI_STYLE_USE_NO_TEXTURE
@@ -1048,6 +1070,35 @@ namespace ZE
 			}
 		}
 
+		UIRect textRect = rect;
+
+#ifdef ZUI_STYLE_USE_NO_TEXTURE
+		const UIRectStyle* uiStyle = &(style.dropdownButtonStyle.up);
+		bool bDivideUsingFillColor = true;
+		if (MainUIState.activeItem.id == _id)
+		{
+			bDivideUsingFillColor = false;
+			uiStyle = &(style.dropdownButtonStyle.down);
+		}
+		else if (MainUIState.hotItem.id == _id)
+		{
+			bDivideUsingFillColor = false;
+			uiStyle = &(style.dropdownButtonStyle.hover);
+		}
+
+		const float arrowButtonSection = 15.0f;
+		const float arrowPadding = arrowButtonSection * 0.1f;
+		const UIRect arrowButtonRect( 
+			rect.m_pos + UIVector2(rect.m_dimension.x - arrowButtonSection + arrowPadding, (rect.m_dimension.y - (arrowButtonSection - 2.0f*arrowPadding)) * 0.5f), 
+			UIVector2(arrowButtonSection - 2.0f * arrowPadding));
+		
+		textRect.m_pos.x += 5.0f;
+		textRect.m_dimension.x -= 5.0f;
+		MainUIState.drawer->DrawRect(rect, uiStyle->borderColor);
+		MainUIState.drawer->DrawRect(rect + UIRect(UIVector2(uiStyle->borderThickness), UIVector2(-2.0f * uiStyle->borderThickness)), uiStyle->fillColor);
+		MainUIState.drawer->DrawRect(UIRect(rect.m_pos + UIVector2(rect.m_dimension.x - arrowButtonSection, uiStyle->borderThickness), UIVector2(uiStyle->borderThickness, rect.m_dimension.y - 2.0f * uiStyle->borderThickness)), bDivideUsingFillColor ? uiStyle->fillColor : uiStyle->borderColor);
+		MainUIState.drawer->DrawCollapseArrow(arrowButtonRect.m_pos, arrowButtonRect.m_dimension, false);
+#else
 		const UITextureStyle* uiStyle = &(style.dropdownButtonStyle.up);
 		if (MainUIState.activeItem.id == _id)
 		{
@@ -1058,7 +1109,6 @@ namespace ZE
 			uiStyle = &(style.dropdownButtonStyle.hover);
 		}
 
-		UIRect textRect = rect;
 		if (uiStyle->texture)
 		{
 			MainUIState.drawer->DrawTexture(rect, uiStyle->texture, uiStyle->fillColor, uiStyle->textureScale, uiStyle->textureOffset);
@@ -1071,9 +1121,47 @@ namespace ZE
 		{
 			MainUIState.drawer->DrawRect(rect, uiStyle->fillColor);
 		}
+#endif
 
 		DrawTextInRect(textRect, textOptions[*selectedIdx], COLOR_WHITE, TEXT_LEFT, TEXT_V_CENTER, style.dropdownButtonStyle.fontStyle.fontScale, style.dropdownButtonStyle.fontStyle.font);
 
+#ifdef ZUI_STYLE_USE_NO_TEXTURE
+		if (cacheId == _id)
+		{
+			MainUIState.drawer->SetLayer(1); // Draw on top of everything
+
+			// Open selector
+			selectionRect.m_pos.y += rect.m_dimension.y;
+			selectionRect.m_dimension.y = rect.m_dimension.y * optionCount;
+
+			MainUIState.drawer->DrawRect(selectionRect, style.selectorStyle.borderColor);
+			MainUIState.drawer->DrawRect(selectionRect + UIRect(UIVector2(style.selectorStyle.borderThickness), UIVector2(-2.0f*style.selectorStyle.borderThickness)), style.selectorStyle.fillColor);
+
+			// Drawing Text
+			UIRect selRect = rect;
+			UIRect selTextRect = rect;
+			selTextRect.m_pos.y += rect.m_dimension.y;
+			selTextRect.m_pos.x = textRect.m_pos.x;
+			for (Int32 i = 0; i < optionCount; i++)
+			{
+				if (CheckMouseInside(selTextRect))
+				{
+					selRect.m_pos.y = selTextRect.m_pos.y;
+					MainUIState.drawer->DrawRect(selRect, style.selectorHoverStyle.fillColor);
+					if (MainUIState.mouseState == EButtonState::BUTTON_DOWN)
+					{
+						cacheId = 0;
+						*selectedIdx = i;
+					}
+				}
+
+				DrawTextInRect(selTextRect, textOptions[i], COLOR_WHITE, TEXT_LEFT, TEXT_V_CENTER, DefaultDropdownStyle.selectorFontStyle.fontScale, DefaultDropdownStyle.selectorFontStyle.font);
+				selTextRect.m_pos.y += rect.m_dimension.y;
+			}
+
+			MainUIState.drawer->SetLayer(0);
+		}
+#else
 		if (cacheId == _id)
 		{
 			MainUIState.drawer->SetLayer(1); // Draw on top of everything
@@ -1114,6 +1202,7 @@ namespace ZE
 
 			MainUIState.drawer->SetLayer(0);
 		}
+#endif
 	}
 
 	void UI::DoTextInput(UIChar* bufferChar, Int32 bufferCount, const UITextInputStyle& style /*= DefaultTextInputStyle*/)

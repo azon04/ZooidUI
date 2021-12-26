@@ -588,9 +588,15 @@ namespace ZE
 
 	struct UIDropdownStyle
 	{
+#ifdef ZUI_STYLE_USE_NO_TEXTURE
+		UIButtonStyle dropdownButtonStyle;
+		UIRectStyle selectorHoverStyle;
+		UIRectStyle selectorStyle;
+#else
 		UIImageButtonStyle dropdownButtonStyle;
 		UITextureStyle selectorHoverStyle;
 		UITextureStyle selectorStyle;
+#endif
 		UIFontStyle selectorFontStyle;
 	};
 
